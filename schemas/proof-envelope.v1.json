@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://proofofship.com/schemas/proof-envelope.v1.json",
+  "title": "Proof Envelope v1",
+  "description": "Wraps a ship-receipt for submission to proofofship. Contains the full original receipt, actor routing, and optional local score snapshot.",
+  "type": "object",
+  "required": ["envelope_version", "envelope_id", "content_hash", "submitted_at", "actor", "receipt", "export_metadata"],
+  "properties": {
+    "envelope_version": {
+      "const": "1.0",
+      "description": "Envelope schema version. Independent of receipt version."
+    },
+    "envelope_id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "ULID generated at export time. For ordering and reference, NOT the dedupe key."
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 of the canonical receipt JSON. This IS the idempotency and dedupe key."
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of envelope creation."
+    },
+    "actor": {
+      "type": "object",
+      "required": ["github_username", "display_name"],
+      "properties": {
+        "github_username": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$",
+          "description": "GitHub username extracted from receipt subject profiles."
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable name from receipt subject.name."
+        },
+        "profile_urls": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "description": "All profile URLs from receipt subject.profiles."
+        }
+      },
+      "additionalProperties": false
+    },
+    "receipt": {
+      "type": "object",
+      "description": "The complete original ship-receipt, embedded verbatim. Proofofship validates this independently.",
+      "required": ["version", "subject", "artifacts"],
+      "additionalProperties": true
+    },
+    "local_score_snapshot": {
+      "type": "object",
+      "description": "Optional. Local game loop score at export time. Informational only — proofofship never trusts this.",
+      "properties": {
+        "base_score": { "type": "integer", "minimum": 0 },
+        "final_score": { "type": "integer", "minimum": 0 },
+        "streak_days": { "type": "integer", "minimum": 0 },
+        "streak_multiplier": { "type": "number", "minimum": 1.0 },
+        "integrity_multiplier": { "type": "number", "minimum": 1.0 },
+        "computed_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "export_metadata": {
+      "type": "object",
+      "required": ["generator", "generator_version", "ship_receipts_schema_version"],
+      "properties": {
+        "generator": {
+          "type": "string",
+          "description": "Tool that created this envelope."
+        },
+        "generator_version": {
+          "type": "string",
+          "description": "Version of the generator tool."
+        },
+        "ship_receipts_schema_version": {
+          "type": "string",
+          "enum": ["0.1", "1.0"],
+          "description": "Schema version of the embedded receipt."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

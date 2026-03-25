@@ -1,0 +1,62 @@
+{
+  "version": "1.0",
+  "subject": {
+    "name": "John Malone",
+    "profiles": [
+      {"kind": "github", "url": "https://github.com/Pro777"}
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "other",
+      "name": "Bug report to Conductor: broken images on changelog page",
+      "url": "https://www.conductor.build/changelog",
+      "verify": [
+        {
+          "kind": "note",
+          "note": "Reported via email to humans@conductor.build on Mar 19, 2026. Images on the changelog page returning 404s (visible in dev console). Spence Hoffman (Conductor) acknowledged, shared with team, and confirmed a fix is in progress as of Mar 20, 2026 at 11:19 AM CT.",
+          "source": "email-thread",
+          "observed_at": "2026-03-19T19:33:00Z"
+        },
+        {
+          "kind": "note",
+          "note": "Follow-up sent Mar 20 at 12:08 PM CT with dev console screenshot confirming 404s still present. Artifact kind used: 'other' — warrants new 'disclosure' kind in schema.",
+          "source": "email-thread",
+          "observed_at": "2026-03-20T12:08:00Z"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "name": "Cross-promotion of claude-code hook double-invocation PR to Conductor/Anthropic",
+      "url": "https://github.com/anthropics/claude-code/pull/36645",
+      "verify": [
+        {
+          "kind": "note",
+          "note": "In the same thread, asked Spence Hoffman (Conductor) to forward PR #36645 to anyone at Anthropic. Proactive routing of upstream fix to increase fix velocity.",
+          "source": "email-thread",
+          "observed_at": "2026-03-20T11:30:00Z"
+        }
+      ]
+    }
+  ,
+  {
+    "kind": "other",
+    "name": "Tweet to @claudeai amplifying PR #36645",
+    "url": "https://x.com/john_malone/status/2035025146541490374",
+    "verify": [
+      {
+        "kind": "note",
+        "note": "Tweeted @claudeai at 11:06 AM CT Mar 20, 2026 asking them to review and merge PR #36645 (fix(plugins): bash-guard — block compound commands where any segment matches a deny rule). +573 -0, 6 files, 2 commits. Public advocacy to increase fix velocity.",
+        "source": "x.com",
+        "observed_at": "2026-03-20T11:06:00Z"
+      }
+    ]
+  }
+  ],
+  "meta": {
+    "created_at": "2026-03-20T12:30:00Z",
+    "generator": "ship-receipts-cli/1.0.0",
+    "tags": ["bug-report", "responsible-disclosure", "proofofship-dogfood", "conductor", "advocacy"]
+  }
+}

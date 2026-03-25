@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "subject": {
+    "name": "Vesper",
+    "profiles": [
+      {"kind": "github", "url": "https://github.com/vesper-labs"}
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "repo",
+      "name": "nullroute",
+      "url": "https://github.com/vesper-labs/nullroute",
+      "version": "0.4.1",
+      "immutable_ref": "3f8a21c7b94d6e0512f9a4cc8071e3bdaf562190",
+      "ci_url": "https://github.com/vesper-labs/nullroute/actions/runs/88001234",
+      "verify": [
+        {
+          "kind": "checksum",
+          "algo": "sha256",
+          "hash": "b94d27b9934d3e08a52e52d7da7dabfac484efe04294e576b0bec7ad26a2f4b1",
+          "source": "release-artifact",
+          "observed_at": "2026-02-26T09:00:00Z"
+        },
+        {
+          "kind": "link",
+          "url": "https://github.com/vesper-labs/nullroute/actions/runs/88001234",
+          "source": "github-actions",
+          "observed_at": "2026-02-26T09:00:00Z"
+        },
+        {
+          "kind": "command",
+          "command": "cd nullroute && python -m pytest tests/ -v",
+          "source": "maintainer",
+          "observed_at": "2026-02-26T09:00:00Z"
+        }
+      ],
+      "signals": {
+        "dependents": 12,
+        "downloads_30d": 3100,
+        "stars": 88,
+        "as_of": "2026-02-26T09:00:00Z",
+        "sources": ["https://api.github.com/repos/vesper-labs/nullroute"],
+        "methodology": "GitHub REST API point-in-time snapshot"
+      }
+    }
+  ],
+  "meta": {
+    "created_at": "2026-02-26T09:05:00Z",
+    "content_hash": "sha256:023fe0f95550aa4a61e173000d74b6e3a79dcf74416b59861f4cc2cd8d5eb6c0",
+    "generator": "ship-receipts-cli/1.0.0"
+  }
+}

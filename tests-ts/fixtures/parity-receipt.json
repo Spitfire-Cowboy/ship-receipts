@@ -1,0 +1,30 @@
+{
+  "version": "0.1",
+  "subject": {
+    "name": "ParityUser",
+    "profiles": [
+      { "kind": "github", "url": "https://github.com/parityuser" }
+    ]
+  },
+  "meta": {
+    "created_at": "2026-02-25T10:00:00Z"
+  },
+  "artifacts": [
+    {
+      "kind": "repo",
+      "name": "parity-app",
+      "url": "https://github.com/parityuser/parity-app",
+      "immutable_ref": "abc123",
+      "ci_url": "https://ci.example.com/123",
+      "verify": [
+        { "kind": "checksum", "algo": "sha256", "hash": "deadbeef" },
+        { "kind": "link", "url": "https://example.com/proof" },
+        { "kind": "command", "command": "npm test" }
+      ],
+      "signals": {
+        "stars": 42,
+        "downloads_30d": 1000
+      }
+    }
+  ]
+}

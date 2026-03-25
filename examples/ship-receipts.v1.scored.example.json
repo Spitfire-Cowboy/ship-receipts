@@ -1,0 +1,82 @@
+{
+  "version": "1.0",
+  "notes": "Multi-artifact receipt showing a library release and its companion demo app shipped the same day.",
+  "subject": {
+    "name": "Vesper",
+    "profiles": [
+      {"kind": "github", "url": "https://github.com/vesper-labs"}
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "repo",
+      "name": "nullroute",
+      "url": "https://github.com/vesper-labs/nullroute",
+      "version": "0.4.1",
+      "immutable_ref": "3f8a21c7b94d6e0512f9a4cc8071e3bdaf562190",
+      "ci_url": "https://github.com/vesper-labs/nullroute/actions/runs/88001234",
+      "verify": [
+        {
+          "kind": "checksum",
+          "algo": "sha256",
+          "hash": "b94d27b9934d3e08a52e52d7da7dabfac484efe04294e576b0bec7ad26a2f4b1",
+          "source": "release-artifact",
+          "observed_at": "2026-02-26T09:00:00Z"
+        },
+        {
+          "kind": "link",
+          "url": "https://github.com/vesper-labs/nullroute/actions/runs/88001234",
+          "source": "github-actions",
+          "observed_at": "2026-02-26T09:00:00Z"
+        },
+        {
+          "kind": "command",
+          "command": "cd nullroute && python -m pytest tests/ -v",
+          "source": "maintainer",
+          "observed_at": "2026-02-26T09:00:00Z"
+        }
+      ],
+      "signals": {
+        "dependents": 12,
+        "downloads_30d": 3100,
+        "stars": 88,
+        "as_of": "2026-02-26T09:00:00Z",
+        "sources": ["https://api.github.com/repos/vesper-labs/nullroute"],
+        "methodology": "GitHub REST API point-in-time snapshot"
+      }
+    },
+    {
+      "kind": "demo",
+      "name": "nullroute-playground",
+      "url": "https://github.com/vesper-labs/nullroute-playground",
+      "version": "0.1.0",
+      "immutable_ref": "7cc90d1a23e5f84b619d8fcd3042a8e5b7190df2",
+      "ci_url": "https://github.com/vesper-labs/nullroute-playground/actions/runs/88001299",
+      "verify": [
+        {
+          "kind": "link",
+          "url": "https://github.com/vesper-labs/nullroute-playground/actions/runs/88001299",
+          "source": "github-actions",
+          "observed_at": "2026-02-26T09:10:00Z"
+        },
+        {
+          "kind": "command",
+          "command": "cd nullroute-playground && npm install && npm test",
+          "source": "maintainer",
+          "observed_at": "2026-02-26T09:10:00Z"
+        }
+      ],
+      "signals": {
+        "stars": 14,
+        "as_of": "2026-02-26T09:10:00Z",
+        "sources": ["https://api.github.com/repos/vesper-labs/nullroute-playground"],
+        "methodology": "GitHub REST API point-in-time snapshot"
+      }
+    }
+  ],
+  "meta": {
+    "created_at": "2026-02-26T09:15:00Z",
+    "content_hash": "sha256:ee7ca9ee8eb82ff3b01939b9fd661e1a52020815e7b88fb67df970bf3ec6afb5",
+    "generator": "ship-receipts-cli/1.0.0"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "version": "0.1",
+  "origin_id": "01JFQX7K4VBQM3N8P2R5T6W9XZ",
+  "origin_timestamps": {
+    "idea": "2026-02-15T10:00:00Z",
+    "dispatched": "2026-02-20T14:00:00Z",
+    "issue_opened": "2026-02-20T14:05:00Z",
+    "shipped": "2026-03-01T09:30:00Z"
+  },
+  "issued_at": "2026-03-01T09:30:00Z",
+  "subject": {"name": "John Malone"},
+  "artifacts": [
+    {
+      "kind": "repo",
+      "name": "ship-receipts",
+      "url": "https://github.com/Pro777/ship-receipts"
+    }
+  ]
+}

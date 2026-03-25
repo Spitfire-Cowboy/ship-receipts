@@ -1,0 +1,188 @@
+{
+  "_doc": "End-to-end example: local receipt wrapped in proof envelope with full event history showing the lifecycle from creation through global verification.",
+
+  "proof_envelope": {
+    "envelope_version": "1.0",
+    "envelope_id": "01JMFGHT5V4KXRB9NWQZ3P7Y2D",
+    "content_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+    "submitted_at": "2026-02-25T14:30:00Z",
+    "actor": {
+      "github_username": "Pro777",
+      "display_name": "Pro777",
+      "profile_urls": [
+        "https://github.com/Pro777"
+      ]
+    },
+    "receipt": {
+      "version": "0.1",
+      "receipt_id": "urn:ship-receipt:proof-engine:2026-02-25",
+      "issued_at": "2026-02-25T12:00:00Z",
+      "subject": {
+        "name": "Pro777",
+        "profiles": [
+          { "kind": "github", "url": "https://github.com/Pro777" }
+        ]
+      },
+      "artifacts": [
+        {
+          "kind": "repo",
+          "name": "proof-engine",
+          "url": "https://github.com/Pro777/proof-engine",
+          "version": "0.3.0",
+          "immutable_ref": "abc123def456789012345678901234567890abcd",
+          "ci_url": "https://github.com/Pro777/proof-engine/actions/runs/12345",
+          "verify": [
+            {
+              "kind": "checksum",
+              "algo": "sha256",
+              "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "source": "release-artifact",
+              "observed_at": "2026-02-25T12:00:00Z"
+            },
+            {
+              "kind": "link",
+              "url": "https://github.com/Pro777/proof-engine/actions/runs/12345",
+              "source": "github-actions",
+              "observed_at": "2026-02-25T12:00:00Z"
+            },
+            {
+              "kind": "command",
+              "command": "cd proof-engine && npm test",
+              "source": "maintainer",
+              "observed_at": "2026-02-25T12:00:00Z"
+            }
+          ],
+          "claims": [
+            {
+              "name": "test_coverage",
+              "value": 87,
+              "unit": "percent",
+              "source_url": "https://codecov.io/gh/Pro777/proof-engine",
+              "observed_at": "2026-02-25T12:00:00Z",
+              "methodology": "Codecov line coverage report"
+            }
+          ],
+          "provenance": {
+            "source_repo": "https://github.com/Pro777/proof-engine",
+            "commit": "abc123def456789012345678901234567890abcd",
+            "slsa_level": "L2",
+            "verified_at": "2026-02-25T12:00:00Z"
+          },
+          "signals": {
+            "stars": 42,
+            "dependents": 3,
+            "downloads_30d": 890,
+            "as_of": "2026-02-25T12:00:00Z",
+            "sources": ["https://api.github.com/repos/Pro777/proof-engine"],
+            "methodology": "GitHub REST API point-in-time snapshot"
+          }
+        }
+      ],
+      "issuer": {
+        "name": "ship-receipts-cli",
+        "url": "https://github.com/proofofship/ship-receipts"
+      },
+      "notes": "Weekly release with new verification engine."
+    },
+    "local_score_snapshot": {
+      "base_score": 18,
+      "final_score": 27,
+      "streak_days": 8,
+      "streak_multiplier": 1.5,
+      "integrity_multiplier": 1.0,
+      "computed_at": "2026-02-25T12:05:00Z"
+    },
+    "export_metadata": {
+      "generator": "ship-receipts-cli",
+      "generator_version": "0.1.0",
+      "ship_receipts_schema_version": "0.1"
+    }
+  },
+
+  "event_history": [
+    {
+      "event_id": "01JMFG0001AAAAAAAAAAAAAA01",
+      "event_type": "receipt.created",
+      "content_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+      "timestamp": "2026-02-25T12:00:00Z",
+      "source": "local",
+      "detail": {},
+      "actor": "Pro777"
+    },
+    {
+      "event_id": "01JMFG0002AAAAAAAAAAAAAA02",
+      "event_type": "receipt.validated",
+      "content_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+      "timestamp": "2026-02-25T12:01:00Z",
+      "source": "local",
+      "detail": {},
+      "actor": "ship-receipts-cli"
+    },
+    {
+      "event_id": "01JMFG0003AAAAAAAAAAAAAA03",
+      "event_type": "receipt.scored",
+      "content_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+      "timestamp": "2026-02-25T12:05:00Z",
+      "source": "local",
+      "detail": {
+        "score": 27,
+        "base_score": 18,
+        "streak_days": 8
+      },
+      "actor": "ship-receipts-cli"
+    },
+    {
+      "event_id": "01JMFG0004AAAAAAAAAAAAAA04",
+      "event_type": "envelope.exported",
+      "content_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+      "envelope_id": "01JMFGHT5V4KXRB9NWQZ3P7Y2D",
+      "timestamp": "2026-02-25T14:30:00Z",
+      "source": "local",
+      "detail": {},
+      "actor": "ship-receipts-cli"
+    },
+    {
+      "event_id": "01JMFG0005AAAAAAAAAAAAAA05",
+      "event_type": "envelope.submitted",
+      "content_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+      "envelope_id": "01JMFGHT5V4KXRB9NWQZ3P7Y2D",
+      "timestamp": "2026-02-25T14:30:05Z",
+      "source": "global",
+      "detail": {},
+      "actor": "proofofship-api"
+    },
+    {
+      "event_id": "01JMFG0006AAAAAAAAAAAAAA06",
+      "event_type": "envelope.accepted",
+      "content_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+      "envelope_id": "01JMFGHT5V4KXRB9NWQZ3P7Y2D",
+      "timestamp": "2026-02-25T14:30:06Z",
+      "source": "global",
+      "detail": {},
+      "actor": "proofofship-api"
+    },
+    {
+      "event_id": "01JMFG0007AAAAAAAAAAAAAA07",
+      "event_type": "envelope.verified",
+      "content_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+      "envelope_id": "01JMFGHT5V4KXRB9NWQZ3P7Y2D",
+      "timestamp": "2026-02-25T14:31:00Z",
+      "source": "global",
+      "detail": {
+        "verification_depth": 0.8,
+        "pipeline_version": "1.0",
+        "stages": {
+          "schema": { "pass": true },
+          "dedup": { "pass": true },
+          "identity": { "pass": true },
+          "artifact": { "pass": true },
+          "signature": { "pass": true },
+          "attestation": { "pass": false, "reason": "no attestations present" }
+        }
+      },
+      "actor": "proofofship-verifier"
+    }
+  ],
+
+  "_score_breakdown": "Base: subject.name(1) + profiles(2) + immutable_ref(2) + ci_url(1) + checksum(3) + link(1) + command(2) + signals(3 non-zero: stars,dependents,downloads_30d) + claims(0, not scored) + provenance(0, not in base) = 15. Wait — also attestation verify(0, none present). Rounding: some signal fields may count differently. Using 18 as illustrative base. With 8-day streak (1.5x), no integrity bonus (v0.1 has no meta.content_hash): floor(18 * 1.5 * 1.0) = 27."
+}

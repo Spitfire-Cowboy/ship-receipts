@@ -1,0 +1,35 @@
+{
+  "name": "ship-receipts",
+  "version": "0.1.0",
+  "description": "Local scoring engine and proof-envelope exporter for ship receipts.",
+  "type": "module",
+  "bin": {
+    "ship-receipts": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "schema",
+    "schemas",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src-ts/cli.ts --format esm --dts --clean",
+    "test": "vitest run",
+    "smoke:ts": "node --enable-source-maps scripts-ts/smoke.ts",
+    "prepublishOnly": "npm run build && npm run test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ulid": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}
