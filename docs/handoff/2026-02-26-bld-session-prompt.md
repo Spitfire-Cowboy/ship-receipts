@@ -1,7 +1,13 @@
-# BLD Session Prompt — 2026-02-26
+# BLD Assignment Archive — 2026-02-26
 
-Archive note: this legacy pasted-session prompt is retained for history.
-For current execution, use issue-based handoff in GitHub (issue + branch + PR links).
+This file is historical context only. Do not paste it directly into a live
+session.
+
+For current execution, create a GitHub issue and assign work through the issue:
+1. Open a new issue with full task details (scope, file map, guardrails, tests).
+2. Label the issue with the target agent lane (for example `BLD` or `Codex`).
+3. Include branch and PR requirements in the issue body.
+4. Paste the issue link in handoff notes; use the issue as the single source of truth.
 
 ---
 
@@ -53,7 +59,7 @@ This machine has arxiv abstracts in a ChromaDB collection and ollama available. 
 5. **Competitive landscape** — How does proofofship compare to ARMS (arXiv 2505.18760) and other OSS reputation systems?
 6. **Confidence tier calibration** — Are the tier thresholds (emerging/established/trusted/authority) well-calibrated?
 
-For each question, query the ChromaDB collection for relevant arxiv abstracts, synthesize findings, and write results back to `docs/research/` in the proofofship repo. Commit to `develop` and push.
+For each question, query the ChromaDB collection for relevant arxiv abstracts, synthesize findings, and write results back to `docs/research/` in the proofofship repo. Commit and open a PR as defined in the assignment issue.
 
 ### 3. Review the strategic analysis
 
@@ -65,13 +71,14 @@ Read `ship-receipts/docs/game-mode/strategic-analysis-v1.md` with a critical eye
 - Humans and agents on the same ledger
 - Risks and open questions
 
-Push back on anything that doesn't hold up. File issues or write counter-analysis.
+Push back on anything that doesn't hold up. File issues or write counter-analysis, and link all outputs back to the assignment issue.
 
 ## Conventions
 
 - **No Co-Authored-By lines** in commits. This is John's project.
-- **PRs target `develop`**, not `main`.
-- **GitHub is canonical** for all handoff between machines.
+- **Use issue-based handoff** (no copy-paste session prompts).
+- **GitHub is canonical** for all machine-to-machine assignment and status.
+- **Target branch comes from the assignment issue** (do not assume `develop`).
 - Keep commits clean and descriptive.
 - Both repos use the same CLAUDE.md conventions: additive changes, simple schema, clear examples.
 

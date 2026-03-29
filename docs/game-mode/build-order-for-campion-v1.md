@@ -10,7 +10,7 @@
 ## Guiding Principles
 
 1. Each slice is small, testable, and independently useful.
-2. No slice depends on network access.
+2. Slices must be offline-capable after initial setup (one-time network fetches allowed).
 3. Every slice has a clear "done" definition.
 4. Earlier slices unblock later ones.
 
@@ -120,11 +120,10 @@
 5. If no `last_qualifying_date` → start new streak at 1.
 
 **Multiplier lookup:**
-- 0-2 days → 1.0x
-- 3-6 days → 1.25x
-- 7-13 days → 1.5x
-- 14-29 days → 1.75x
-- 30+ days → 2.0x
+- 0-1 days → 1.0x
+- 2 days → 1.10x
+- 3-4 days → 1.25x
+- 5+ days → 1.50x
 
 **Done when:** All 5 logic branches tested. Multiplier lookup table tested at boundaries.
 
@@ -238,6 +237,8 @@
 - 20-50 repos OR 500-5k stars → ARCHITECT
 - 50+ repos OR 5k-50k stars → VETERAN
 - 100+ repos OR 50k+ stars → LEGENDARY
+
+If multiple tiers match, the highest qualifying tier wins.
 
 **Note:** This is the ONLY slice that makes a network call (one-time GH API fetch). All subsequent party operations are local.
 

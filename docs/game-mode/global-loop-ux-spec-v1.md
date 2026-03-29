@@ -15,7 +15,7 @@ A receipt must be SCORED locally before it can enter the global loop. The global
 
 ## Flow 1: Export Proof Envelope
 
-```
+```text
 Builder runs: ship-receipts export my-receipt.json
 
   ┌───────────────────────────────────────┐
@@ -124,7 +124,14 @@ Builder runs: ship-receipts status 01JMFG...7Y2D
 | 5. Signature | GPG/SSH signed commit | Optional (scored) |
 | 6. Attestation | Another verified actor attests to the work | Optional (scored) |
 
-Stages 1-3 are pass/fail gates. Stages 4-6 contribute to `verification_depth` (0.0-1.0).
+Stages 1-3 are pass/fail gates.
+
+Stages 4-6 contribute weighted components to `verification_depth` (0.0-1.0):
+- Stage 4 (Artifact): required score component, weight 0.70
+- Stage 5 (Signature): optional score component, weight 0.20
+- Stage 6 (Attestation): optional score component, weight 0.10
+
+`verification_depth = artifact + signature + attestation` where optional stages add 0 when absent.
 
 ### Verification Outcomes
 

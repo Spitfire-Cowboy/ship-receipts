@@ -10,7 +10,7 @@ from src.scoring.badges import BADGE_COLORS, BADGE_STATES, derive_badge
 class TestBadgeStates:
     def test_all_event_types_mapped(self):
         expected = {
-            "receipt.created", "receipt.validated", "receipt.submitted",
+            "receipt.created", "receipt.validated", "receipt.scored", "receipt.submitted",
             "envelope.exported", "envelope.submitted", "envelope.accepted",
             "envelope.rejected", "envelope.verified",
         }
@@ -35,13 +35,13 @@ class TestDeriveBadge:
         events = [
             {"type": "receipt.created", "payload": {"content_hash": "hash1"}},
             {"type": "receipt.validated", "payload": {"content_hash": "hash1"}},
-            {"type": "receipt.submitted", "payload": {"content_hash": "hash1"}},
+            {"type": "receipt.scored", "payload": {"content_hash": "hash1"}},
         ]
         assert derive_badge(events, "hash1") == "SCORED"
 
     def test_non_matching_hash_returns_unknown(self):
         events = [
-            {"type": "receipt.submitted", "payload": {"content_hash": "other"}},
+            {"type": "receipt.scored", "payload": {"content_hash": "other"}},
         ]
         assert derive_badge(events, "target") == "UNKNOWN"
 
@@ -68,7 +68,7 @@ class TestDeriveBadge:
 
     def test_envelope_rejected(self):
         events = [
-            {"type": "receipt.submitted", "payload": {"content_hash": "h"}},
+            {"type": "receipt.scored", "payload": {"content_hash": "h"}},
             {"type": "envelope.rejected", "payload": {"content_hash": "h"}},
         ]
         assert derive_badge(events, "h") == "REJECTED"

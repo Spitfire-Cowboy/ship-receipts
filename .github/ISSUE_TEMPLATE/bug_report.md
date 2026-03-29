@@ -4,7 +4,7 @@ about: Report a reproducible bug
 labels: bug
 ---
 
-## What happened
+# What happened
 
 ## What you expected
 

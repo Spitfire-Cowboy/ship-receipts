@@ -3,7 +3,7 @@
 **Status:** DRAFT
 **Date:** 2026-02-26
 **Author:** Seton (Claude Cowork)
-**Scope:** Single player mode only. Everything runs locally.
+**Scope:** Single-player mode only. Everything runs locally.
 
 ---
 

@@ -104,7 +104,7 @@ class TestGameStatePipeline:
         assert r2["score"] == 0
 
     def test_dispute_penalty_path(self):
-        """After scoring, manually flagging a receipt should freeze its contribution."""
+        """After dispute, recalculate_total should remove upheld scores from total."""
         receipt = _make_receipt(with_checksum=True)
         result = self.state.score_receipt(receipt)
         original_score = result["score"]
@@ -113,12 +113,12 @@ class TestGameStatePipeline:
         # Simulate dispute: flag the receipt
         self.state.state["history"][-1]["dispute_status"] = "upheld"
 
-        # Recalculate total (as the spec says: total is recalculated)
-        new_total = sum(
-            h["score"] for h in self.state.state["history"]
-            if h.get("dispute_status") in ("none", "dismissed")
-        )
-        assert new_total == 0  # Only receipt, now disputed
+        # Exercise the production recalc path and persisted state.
+        new_total = self.state.recalculate_total()
+        self.state.save()
+        reloaded = GameState(root_dir=self.tmpdir)
+        assert new_total == 0
+        assert reloaded.state["total_score"] == 0
 
     def test_save_and_reload(self):
         receipt = _make_receipt()

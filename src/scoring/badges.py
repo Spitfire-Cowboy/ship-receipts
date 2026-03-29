@@ -10,6 +10,8 @@ from __future__ import annotations
 BADGE_STATES: dict[str, str] = {
     "receipt.created": "DRAFT",
     "receipt.validated": "VALID",
+    "receipt.scored": "SCORED",
+    # Backward compatibility for older local event history files.
     "receipt.submitted": "SCORED",
     "envelope.exported": "EXPORTED",
     "envelope.submitted": "PENDING",

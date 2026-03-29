@@ -93,26 +93,26 @@ Excludes:
 
 ## 4) Risk Controls
 
-## Data leakage prevention
+### Data leakage prevention
 
 - **Allowlist export model** (never denylist-only).
 - Secret scanning on both private and export output.
 - Pattern checks for private indicators (`internal`, `draft`, partner names, private URLs).
 - Mandatory reviewer approval before export push.
 
-## Integrity and traceability
+### Integrity and traceability
 
 - Export manifest with checksums (`SHA256SUMS`) committed in public repo.
 - Record source private commit SHA in export metadata file (`PUBLIC_EXPORT_META.json`).
 - Signed tags for baseline and releases.
 
-## Operational resilience
+### Operational resilience
 
 - Rollback tags retained on both repos.
 - If export pipeline fails, no publish occurs.
 - Emergency stop switch: disable publish workflow in CI.
 
-## Governance safety
+### Governance safety
 
 - CODEOWNERS enforces maintainer approval for:
   - `scripts/export-*`
@@ -125,7 +125,7 @@ Excludes:
 
 Goal: deliver a single safe public export from private repo with auditable provenance.
 
-## Slice scope
+### Slice scope
 
 From private repo, export only:
 - `README.md`
@@ -143,7 +143,7 @@ Explicitly exclude for first slice:
 - `docs/research/**`
 - private integration docs and operational notes
 
-## Slice tasks
+### Slice tasks
 
 1. Add allowlist config.
 2. Add deterministic export script.
@@ -152,7 +152,7 @@ Explicitly exclude for first slice:
 5. Publish initial public repo contents.
 6. Document release procedure in `docs/public-export.md` (private repo).
 
-## Slice success criteria
+### Slice success criteria
 
 - Public repo can be regenerated from private with one command.
 - Export output is identical when rerun at same commit.

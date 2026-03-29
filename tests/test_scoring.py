@@ -409,19 +409,19 @@ class TestV1SchemaBackwardsCompat:
         with open(example_path) as f:
             receipt = json.load(f)
         errors = self._validate(receipt)
-        assert errors == [], f"v0.1 example failed v1 schema validation:\n" + "\n".join(errors)
+        assert errors == [], "v0.1 example failed v1 schema validation:\n" + "\n".join(errors)
 
     def test_minimal_v01_receipt_valid_against_v1_schema(self):
         """Minimal v0.1 receipt (version: '0.1') must pass v1 schema."""
         receipt = _minimal_receipt()
         errors = self._validate(receipt)
-        assert errors == [], f"Minimal v0.1 receipt failed v1 schema:\n" + "\n".join(errors)
+        assert errors == [], "Minimal v0.1 receipt failed v1 schema:\n" + "\n".join(errors)
 
     def test_v1_version_field_accepted(self):
         """version: '1.0' must be accepted by the v1 schema."""
         receipt = _minimal_receipt(version="1.0")
         errors = self._validate(receipt)
-        assert errors == [], f"version='1.0' rejected by v1 schema:\n" + "\n".join(errors)
+        assert errors == [], "version='1.0' rejected by v1 schema:\n" + "\n".join(errors)
 
     def test_unknown_version_rejected(self):
         """version: '2.0' must be rejected (not in enum)."""

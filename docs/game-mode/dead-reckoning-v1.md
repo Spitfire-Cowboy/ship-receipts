@@ -45,6 +45,7 @@ Drift is measured in intervals, not days. A weekly cadence developer who ships e
 Receipts have a half-life proportional to the cadence:
 - Daily cadence: receipts at full weight for 2 days, then decay
 - Weekly: full weight for 2 weeks, then decay
+- Biweekly: full weight for 2 biweeks (4 weeks), then decay
 - Monthly: full weight for 2 months, then decay
 
 Decay does not delete receipts. It reduces their contribution to the running score. A ship from 6 months ago still counts — it just counts for less.
@@ -83,6 +84,16 @@ Dead Reckoning state in `.ship-receipts/dr.json`:
 - Dead Reckoning replaces the streak mechanic when enabled — streaks are suspended
 - Siege mode is compatible with Dead Reckoning (siege overrides DR for the siege window)
 - Monk mode suspends DR boundaries for its duration
+
+### State and engine contract
+
+When DR is enabled, scoring and state transitions follow this contract:
+- `enable_dead_reckoning` is atomic: it freezes streak fields (`streak.current`, `streak.last_qualifying_date`, `streak.streak_start_date`) and records a DR activation event.
+- While DR is enabled, the DR scorer is authoritative and streak multipliers are ignored.
+- `disable_dead_reckoning` must choose one explicit exit mode:
+  - `restore`: unfreeze and restore prior streak fields exactly.
+  - `migrate`: transfer DR progress into streak fields via a documented transfer function.
+- The implementation must emit activation/deactivation events so state transitions are auditable.
 
 ---
 

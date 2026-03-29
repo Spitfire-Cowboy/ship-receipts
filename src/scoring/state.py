@@ -84,6 +84,16 @@ class GameState:
             if tmp_path and tmp_path.exists():
                 tmp_path.unlink(missing_ok=True)
 
+    def recalculate_total(self) -> int:
+        """Recalculate total_score from dispute-filtered history entries."""
+        total = sum(
+            int(h.get("score", 0))
+            for h in self.state.get("history", [])
+            if isinstance(h, dict) and h.get("dispute_status") in ("none", "dismissed")
+        )
+        self.state["total_score"] = total
+        return total
+
     # ------------------------------------------------------------------
     # Duplicate check
     # ------------------------------------------------------------------
@@ -249,7 +259,7 @@ class GameState:
         self.state["total_score"] += final_score
 
         # 8. Emit event
-        self._emit_event("receipt.submitted", {
+        self._emit_event("receipt.scored", {
             "receipt_hash": content_hash,
             "score": final_score,
             "breakdown": entry["breakdown"],

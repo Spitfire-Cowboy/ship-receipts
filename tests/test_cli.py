@@ -48,29 +48,19 @@ class TestValidateCommand:
 
 
 class TestScoreCommand:
-    def test_score_accepted(self, tmp_path):
+    def test_score_accepted(self, tmp_path, monkeypatch):
         path = _write_receipt(str(tmp_path))
-        # Change to tmpdir so game state is isolated
-        old_cwd = os.getcwd()
-        os.chdir(str(tmp_path))
-        try:
-            result = main(["score", path])
-            assert result == 0
-            # Game state file should exist
-            assert os.path.exists(".ship-receipts/game-state.json")
-        finally:
-            os.chdir(old_cwd)
+        monkeypatch.chdir(tmp_path)
+        result = main(["score", path])
+        assert result == 0
+        assert os.path.exists(".ship-receipts/game-state.json")
 
-    def test_score_duplicate(self, tmp_path):
+    def test_score_duplicate(self, tmp_path, monkeypatch):
         path = _write_receipt(str(tmp_path))
-        old_cwd = os.getcwd()
-        os.chdir(str(tmp_path))
-        try:
-            main(["score", path])  # First score
-            result = main(["score", path])  # Duplicate
-            assert result == 1  # Duplicate returns 1
-        finally:
-            os.chdir(old_cwd)
+        monkeypatch.chdir(tmp_path)
+        main(["score", path])  # First score
+        result = main(["score", path])  # Duplicate
+        assert result == 1  # Duplicate returns 1
 
 
 class TestExportCommand:
@@ -482,16 +472,14 @@ class TestLLMHook:
         old_cwd = os.getcwd()
         os.chdir(str(tmp_path))
         try:
-            # Hook raises but score should still succeed
-            try:
-                result = main(["score", path])
-            except RuntimeError:
-                pass  # hook raises outside the try/except in cmd_score — that's ok for now
+            # Monkeypatch replaces the wrapper, so this runtime error propagates.
+            with pytest.raises(RuntimeError, match="hook exploded"):
+                main(["score", path])
         finally:
             os.chdir(old_cwd)
 
 
-class TestInitCommand:
+class TestInitCommandInteractive:
     def test_init_creates_receipt(self, tmp_path, monkeypatch):
         old_cwd = os.getcwd()
         os.chdir(str(tmp_path))
@@ -507,7 +495,7 @@ class TestInitCommand:
             # Simulate a TTY so prompt() doesn't bail out in CI
             import io
             class FakeTTY(io.StringIO):
-                def isatty(self):
+                def isatty(self) -> bool:
                     return True
             monkeypatch.setattr("sys.stdin", FakeTTY())
 

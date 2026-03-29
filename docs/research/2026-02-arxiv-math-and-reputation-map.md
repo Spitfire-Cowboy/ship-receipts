@@ -14,20 +14,20 @@ Queried ~2.95M arXiv paper metadata (ChromaDB, `nomic-embed-text` embeddings) ac
 
 ## Paper Map (19 papers, 6 categories)
 
+Year column uses the first arXiv submission year for each paper.
+
 ### Category 1: Reputation Systems
 
 | ID | Title | arXiv | Year | Applicability |
 |----|-------|-------|------|---------------|
 | R1 | The Challenge of Decentralized Marketplaces | 1703.05713 | 2017 | Centralized vs decentralized trust architecture tradeoffs |
 | R2 | A Reputation System for Multi-Agent Marketplaces | 1905.08036 | 2019 | Transaction-weighted ratings analogous to receipt scoring |
-| R3 | Reputation Gaming in Stack Overflow | 2111.07101 | 2024 | Empirical taxonomy of 4 fraud types in dev reputation |
+| R3 | Reputation Gaming in Stack Overflow | 2111.07101 | 2021 | Empirical taxonomy of 4 fraud types in dev reputation |
 | R4 | Trust in Motion: Trust Ascendancy in OSS | 2210.02656 | 2022 | Time-varying trust models; contribution-to-trust pipeline |
-| R5 | ARMS: Actor Reputation Metric Systems for OSS Supply Chain | 2505.18760 | 2026 | **Most directly relevant** — proposes exactly this kind of system |
-| R6 | Sandi: Accountability and Anti-Manipulation | 2401.16759 | 2025 | Downvote-only reputation; integrity + anti-manipulation |
+| R5 | ARMS: Actor Reputation Metric Systems for OSS Supply Chain | 2505.18760 | 2025 | **Most directly relevant** — proposes exactly this kind of system |
+| R6 | Sandi: Accountability and Anti-Manipulation | 2401.16759 | 2024 | Downvote-only reputation; integrity + anti-manipulation |
 
 ### Category 2: Trust Scoring Under Adversarial Behavior
-
-Year column uses the first arXiv submission year for each paper.
 
 | ID | Title | arXiv | Year | Applicability |
 |----|-------|-------|------|---------------|
@@ -41,14 +41,14 @@ Year column uses the first arXiv submission year for each paper.
 | ID | Title | arXiv | Year | Applicability |
 |----|-------|-------|------|---------------|
 | R11 | Trustworthy Anomaly Detection: A Survey | 2202.07787 | 2022 | Meta-trust: trusting the gaming-detection system itself |
-| R12 | Graph-Based Fraud Detection Methods | 1910.11299 | 2022 | Receipt attestation graph → collusion subgraph detection |
+| R12 | Graph-Based Fraud Detection Methods | 1910.11299 | 2019 | Receipt attestation graph → collusion subgraph detection |
 
 ### Category 4: Probabilistic Confidence / Proxy Metrics
 
 | ID | Title | arXiv | Year | Applicability |
 |----|-------|-------|------|---------------|
-| R13 | Pareto Optimal Proxy Metrics | 2307.01000 | 2025 | Ship-receipt scores as proxies for builder quality |
-| R14 | Choosing a Proxy Metric from Past Experiments | 2309.07893 | 2024 | Calibrating local score against long-term reputation |
+| R13 | Pareto Optimal Proxy Metrics | 2307.01000 | 2023 | Ship-receipt scores as proxies for builder quality |
+| R14 | Choosing a Proxy Metric from Past Experiments | 2309.07893 | 2023 | Calibrating local score against long-term reputation |
 
 ### Category 5: Sybil Resistance / Collusion Detection
 
@@ -63,7 +63,7 @@ Year column uses the first arXiv submission year for each paper.
 | ID | Title | arXiv | Year | Applicability |
 |----|-------|-------|------|---------------|
 | R18 | Automatic Verification of Transparency Protocols | 2303.04500 | 2023 | Formal verification for append-only receipt ledger |
-| R19 | IA-CCF: Individual Accountability for Permissioned Ledgers | 2105.13116 | 2022 | Actor-level accountability even under system compromise |
+| R19 | IA-CCF: Individual Accountability for Permissioned Ledgers | 2105.13116 | 2021 | Actor-level accountability even under system compromise |
 
 ---
 
