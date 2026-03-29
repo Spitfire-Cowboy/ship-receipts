@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ship-receipts v0.1 — 三国征途</title>
+    <style>
+        :root {
+            --accent: #ffb000;
+            --accent-glow: rgba(255, 176, 0, 0.5);
+            --accent-dim: rgba(255, 176, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0e27;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            color: #e0e0e0;
+            overflow: hidden;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .window {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #0a0e27;
+            border: 1px solid #333;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: #0a0e27;
+            border-bottom: 1px solid #222;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .titlebar {
+            background: linear-gradient(to bottom, #1a1f3a, #0f1428);
+            padding: 8px 12px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+            user-select: none;
+        }
+
+        .titlebar-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ff5555; }
+        .dot.amber { background: #ffb000; }
+        .dot.green { background: #00ff41; }
+
+        .titlebar-text {
+            margin-left: 12px;
+            color: #666;
+        }
+
+        .terminal {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            background: #0a0e27;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .terminal::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 0, 0, 0.03),
+                    rgba(0, 0, 0, 0.03) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            z-index: 10;
+        }
+
+        .slides-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 900px;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px 0;
+            pointer-events: none;
+        }
+
+        .slide.active {
+            opacity: 1;
+            position: relative;
+            pointer-events: auto;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: inherit;
+            color: inherit;
+        }
+
+        .c-cyn { color: #00d4ff; text-shadow: 0 0 6px rgba(0, 212, 255, 0.3); }
+        .c-grn { color: #00ff41; text-shadow: 0 0 6px rgba(0, 255, 65, 0.3); }
+        .c-amb { color: #ffb000; text-shadow: 0 0 5px rgba(255, 176, 0, 0.25); }
+        .c-mag { color: #ff6ac1; text-shadow: 0 0 8px rgba(255, 106, 193, 0.4); }
+        .c-red { color: #ff5555; }
+        .c-wht { color: #e0e0e0; }
+        .c-dim { color: #555; }
+
+        .cursor {
+            animation: blink 1s step-end infinite;
+            display: inline-block;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .controls {
+            background: #0f1428;
+            border-top: 1px solid #222;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            font-size: 12px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+
+        .controls-left {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .controls-center {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .controls-right {
+            text-align: right;
+            min-width: 150px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background: #1a1f3a;
+            border: 1px solid #333;
+            color: var(--accent);
+            padding: 6px 14px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 2px;
+        }
+
+        button:hover:not(:disabled) {
+            background: #252d48;
+            border-color: var(--accent);
+            color: #00ff41;
+        }
+
+        button:active:not(:disabled) {
+            background: #1a1f3a;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .dots {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dot-btn {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            border: 1px solid #555;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dot-btn:hover {
+            background: #555;
+            border-color: var(--accent);
+        }
+
+        .dot-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .scene-counter {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .auto-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            background: #1a1f3a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            color: var(--accent);
+            font-size: 12px;
+        }
+
+        .auto-status.paused {
+            color: #ffb000;
+        }
+
+        .timer-bar {
+            display: inline-block;
+            width: 40px;
+            height: 2px;
+            background: #333;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+        }
+
+        .timer-fill.animating {
+            animation: countdown 10s linear forwards;
+        }
+
+        @keyframes countdown {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="titlebar">
+            <div class="titlebar-dots">
+                <div class="dot red"></div>
+                <div class="dot amber"></div>
+                <div class="dot green"></div>
+            </div>
+            <div class="titlebar-text">ship-receipts v0.1 — 三国征途</div>
+        </div>
+
+        <div class="terminal">
+            <div class="slides-container" id="slidesContainer"></div>
+        </div>
+
+        <div class="controls">
+            <div class="controls-left">
+                <span>ship-receipts v0.1 · 三国征途</span>
+            </div>
+
+            <div class="controls-center">
+                <div class="buttons">
+                    <button id="prevBtn">← 上一页</button>
+                    <button id="playPauseBtn">⏸ 暂停</button>
+                    <button id="nextBtn">下一页 →</button>
+                </div>
+
+                <div class="dots" id="dotsContainer"></div>
+
+                <div class="timer-bar">
+                    <div class="timer-fill" id="timerFill"></div>
+                </div>
+            </div>
+
+            <div class="controls-right">
+                <div class="auto-status" id="autoStatus">
+                    <span class="status-icon">▶</span>
+                    <span>自动</span>
+                </div>
+                <div class="scene-counter" id="sceneCounter">第 1 页 / 共 8 页</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const totalSlides = 8;
+        let currentSlide = 0;
+        let isAutoAdvancing = true;
+        let autoAdvanceTimer = null;
+        const timers = [];
+        const intervals = [];
+
+        function t(fn, ms) {
+            const id = setTimeout(fn, ms);
+            timers.push(id);
+            return id;
+        }
+
+        function iv(fn, ms) {
+            const id = setInterval(fn, ms);
+            intervals.push(id);
+            return id;
+        }
+
+        function clearAll() {
+            timers.forEach(clearTimeout);
+            intervals.forEach(clearInterval);
+            timers.length = 0;
+            intervals.length = 0;
+        }
+
+        // Animation helper: Type command with cursor
+        function typeCmd(el, L, cmd, cb) {
+            L.push('');
+            const idx = L.length - 1;
+            let i = 0;
+            const go = () => {
+                if (i <= cmd.length) {
+                    L[idx] = '<span class="c-amb">$ </span><span class="c-dim">' + cmd.substring(0, i) + '</span><span class="cursor">█</span>';
+                    el.innerHTML = L.join('\n');
+                    i++;
+                    t(go, 30 + Math.random() * 20);
+                } else {
+                    L[idx] = '<span class="c-amb">$ </span><span class="c-dim">' + cmd + '</span>';
+                    el.innerHTML = L.join('\n');
+                    t(cb, 300);
+                }
+            };
+            go();
+        }
+
+        // Animation helper: Reveal lines one at a time
+        function revealLines(el, L, lines, delay, cb) {
+            const startIdx = L.length;
+            lines.forEach(() => L.push(''));
+            let i = 0;
+            const go = () => {
+                if (i < lines.length) {
+                    L[startIdx + i] = lines[i];
+                    el.innerHTML = L.join('\n');
+                    i++;
+                    t(go, delay);
+                } else if (cb) t(cb, 200);
+            };
+            go();
+        }
+
+        // Animation helper: Stream text character by character
+        function streamText(el, L, text, prefix, cb) {
+            const idx = L.length;
+            L.push('');
+            let i = 0;
+            const go = () => {
+                if (i <= text.length) {
+                    const partial = text.substring(0, i);
+                    const lines = partial.split('\n').map(ln => prefix + '<span class="c-wht">' + ln + '</span>');
+                    L[idx] = lines.join('\n');
+                    el.innerHTML = L.join('\n');
+                    i++;
+                    t(go, 25);
+                } else if (cb) t(cb, 300);
+            };
+            go();
+        }
+
+        // Animation helper: Count up score
+        function countUp(el, L, idx, template, target, cb) {
+            let val = 0;
+            const step = Math.max(1, Math.ceil(target / 20));
+            const go = () => {
+                val = Math.min(val + step, target);
+                L[idx] = template.replace('{{N}}', val);
+                el.innerHTML = L.join('\n');
+                if (val < target) t(go, 50);
+                else if (cb) t(cb, 400);
+            };
+            go();
+        }
+
+        // Animation helper: Reveal checkmarks
+        function revealChecks(el, L, checks, startIdx, cb) {
+            let i = 0;
+            const go = () => {
+                if (i < checks.length) {
+                    L[startIdx + i] = checks[i];
+                    el.innerHTML = L.join('\n');
+                    i++;
+                    t(go, 400);
+                } else if (cb) t(cb, 300);
+            };
+            checks.forEach(() => L.push(''));
+            go();
+        }
+
+        // Scene functions
+        const scenes = [];
+
+        // Scene 0: Morning Status
+        scenes[0] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts status', () => {
+                const statusLines = [
+                    '        ⚔ ═══════════════════════════════════ ⚔',
+                    '        ║  三国征途 · 船票凭证系统 v0.1  ║',
+                    '        ⚔ ═══════════════════════════════════ ⚔',
+                    '│',
+                    '┌─── 征途概况 ─────────────────────────────────',
+                    '│',
+                    '│  志向："让一个项目开始盈利。"',
+                    '│  第23日。连胜：4日。',
+                    '│',
+                    '│  上一张凭证：ship-receipts 评分引擎',
+                    '│  昨日得分：17分',
+                    '│',
+                    '│  军师曰："你在为建造者建造工具——',
+                    '│  很好。但第一个客户在哪里？"',
+                    '│',
+                    '└──────────────────────────────────────────────'
+                ];
+                revealLines(el, L, statusLines, 80, () => {
+                    L.push('');
+                    L.push('<span class="c-amb">将军早安。今日欲攻何城？</span>');
+                    el.innerHTML = L.join('\n');
+                });
+            });
+        };
+
+        // Scene 1: Walk Waypoint
+        scenes[1] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts waypoint "出门散步，看日出。"', () => {
+                const waypointLines = [
+                    '┌─── 小目标已设 ───────────────────────────────',
+                    '│',
+                    '│  "出门散步，看日出。"',
+                    '│',
+                    '│  不是所有重要的事都会留下代码。',
+                    '│  养精蓄锐，也是兵法。',
+                    '│',
+                    '└──────────────────────────────────────────────'
+                ];
+                revealLines(el, L, waypointLines, 100, () => {
+                    t(() => {
+                        L.push('');
+                        typeCmd(el, L, 'ship-receipts waypoint --done', () => {
+                            const doneLines = [
+                                '<span class="c-grn">✓</span> 小目标已完成："出门散步，看日出。"',
+                                '  用时：37分钟。',
+                                '  无需凭证。你知道你做了。'
+                            ];
+                            revealLines(el, L, doneLines, 100, null);
+                        });
+                    }, 1000);
+                });
+            });
+        };
+
+        // Scene 2: Landing Page Receipt + Score
+        scenes[2] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts init', () => {
+                const receiptLines = [
+                    '┌─── 创建凭证 ─────────────────────────────────',
+                    '│',
+                    '│  主题：       ship-receipts 落地页',
+                    '│  类型：       代码',
+                    '│  产物：       github.com/Spitfire-Cowboy/ship-receipts-site',
+                    '│  提交哈希：   e7f2a1b...',
+                    '│  内容哈希：   sha256:9c4d3e8f...',
+                    '│  CI 链接：    —',
+                    '│  验证命令：   cd ship-receipts-site && npm run build',
+                    '│',
+                    '└──────────────────────────────────────────────'
+                ];
+                revealLines(el, L, receiptLines, 80, () => {
+                    L.push('');
+                    L.push('<span class="c-grn">✓ 凭证已创建：</span>.ship-receipts/receipts/2026-03-01-0830.json');
+                    el.innerHTML = L.join('\n');
+                    t(() => {
+                        L.push('');
+                        typeCmd(el, L, 'ship-receipts score 2026-03-01-0830.json', () => {
+                            const scoreLines = [
+                                '╔═══════════════════════════════════════════════',
+                                '║              战果评定',
+                                '╠═══════════════════════════════════════════════',
+                                '║',
+                                '║  主题名称 ................... +1',
+                                '║  关联身份 ................... +2',
+                                '║  时间戳 ..................... +1',
+                                '║  内容哈希 (SHA-256) ......... +3  <span class="c-grn">✓ 有效</span>',
+                                '║  不可篡改引用 ............... +2',
+                                '║  校验和 ..................... +3  <span class="c-grn">✓ 已验证</span>',
+                                '║  验证命令 ................... +2',
+                                '║                            ─────',
+                                '║  基础分                      14',
+                                '║',
+                                '║  五日连胜 ................... ×1.25',
+                                '║  完整性加成 ................. ×1.50',
+                                '║',
+                                '║  ═══════════════════════════════',
+                                '║       最终得分：    <span class="c-amb">{{N}}</span>',
+                                '║  ═══════════════════════════════',
+                                '║',
+                                '╚═══════════════════════════════════════════════'
+                            ];
+                            revealLines(el, L, scoreLines, 60, () => {
+                                t(() => {
+                                    const scoreIdx = L.length - 6;
+                                    const template = '║       最终得分：    <span class="c-amb">{{N}}</span>';
+                                    countUp(el, L, scoreIdx, template, 26, () => {
+                                        L.push('');
+                                        L.push('<span class="c-red">🔥 五日连胜！势如破竹。</span>');
+                                        el.innerHTML = L.join('\n');
+                                    });
+                                }, 500);
+                            });
+                        });
+                    }, 600);
+                });
+            });
+        };
+
+        // Scene 3: Compass
+        scenes[3] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts compass', () => {
+                const compassLines = [
+                    '┌─── 🧭 军师谏言 ──────────────────────────────',
+                    '│',
+                    '│  志向："让一个项目开始盈利。"',
+                    '│  今日：ship-receipts 落地页',
+                    '│',
+                    '│  ── 谋略 ──────────────────────────────'
+                ];
+                revealLines(el, L, compassLines, 80, () => {
+                    L.push('│');
+                    el.innerHTML = L.join('\n');
+                    t(() => {
+                        streamText(el, L, '落地页——此乃面向天下的第一步。\n此前所建，皆为自用之器。\n今日所为，终于让外人得见。\n\n切记：莫写你希望产品是什么，\n要写它今天、此刻、能为真人做什么。\n\n一句话足矣："ship-receipts 是一款\n证明你做了实事的游戏。" 若此言能引人\n尝试，则方向正确。', '│  ', () => {
+                            L.push('│');
+                            L.push('│  方位：<span class="c-amb">◉ 已修正航向 · 朝向志向</span>');
+                            L.push('│');
+                            L.push('└──────────────────────────────────────────────');
+                            el.innerHTML = L.join('\n');
+                        });
+                    }, 400);
+                });
+            });
+        };
+
+        // Scene 4: Coffee + Pricing
+        scenes[4] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts waypoint "和老张喝杯咖啡，聊聊项目。"', () => {
+                const waypointLines = [
+                    '┌─── 小目标已设 ───────────────────────────────',
+                    '│',
+                    '│  "和老张喝杯咖啡，聊聊项目。"',
+                    '│',
+                    '│  对话也是行军的一部分。',
+                    '│  三顾茅庐，不也是靠聊天成事的吗？',
+                    '│',
+                    '└──────────────────────────────────────────────'
+                ];
+                revealLines(el, L, waypointLines, 100, () => {
+                    t(() => {
+                        L.push('');
+                        typeCmd(el, L, 'ship-receipts waypoint --done', () => {
+                            const doneLines = [
+                                '<span class="c-grn">✓</span> 小目标已完成："和老张喝杯咖啡，聊聊项目。"',
+                                '  用时：45分钟。',
+                                '',
+                                '  老张说："这个我会用。" ——<span class="c-amb">此乃军情。</span>'
+                            ];
+                            revealLines(el, L, doneLines, 100, () => {
+                                t(() => {
+                                    L.push('');
+                                    typeCmd(el, L, 'ship-receipts init', () => {
+                                        const receiptLines = [
+                                            '┌─── 创建凭证 ─────────────────────────────────',
+                                            '│',
+                                            '│  主题：       定价策略文档',
+                                            '│  类型：       文档',
+                                            '│  产物：       notion.so/pro777/pricing-v1',
+                                            '│  内容哈希：   sha256:2b8f4a1e...',
+                                            '│  验证命令：   —',
+                                            '│',
+                                            '└──────────────────────────────────────────────'
+                                        ];
+                                        revealLines(el, L, receiptLines, 80, () => {
+                                            L.push('');
+                                            L.push('<span class="c-grn">✓ 凭证已创建：</span>.ship-receipts/receipts/2026-03-01-1215.json');
+                                            el.innerHTML = L.join('\n');
+                                        });
+                                    });
+                                }, 800);
+                            });
+                        });
+                    }, 1000);
+                });
+            });
+        };
+
+        // Scene 5: Pricing Score
+        scenes[5] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts score 2026-03-01-1215.json', () => {
+                const scoreLines = [
+                    '╔═══════════════════════════════════════════════',
+                    '║              战果评定',
+                    '╠═══════════════════════════════════════════════',
+                    '║',
+                    '║  主题名称 ................... +1',
+                    '║  关联身份 ................... +2',
+                    '║  时间戳 ..................... +1',
+                    '║  内容哈希 (SHA-256) ......... +3  <span class="c-grn">✓ 有效</span>',
+                    '║                            ─────',
+                    '║  基础分                       7',
+                    '║',
+                    '║  五日连胜 ................... ×1.25',
+                    '║  完整性加成 ................. ×1.50',
+                    '║',
+                    '║  ═══════════════════════════════',
+                    '║       最终得分：    <span class="c-amb">{{N}}</span>',
+                    '║  ═══════════════════════════════',
+                    '║',
+                    '╚═══════════════════════════════════════════════'
+                ];
+                revealLines(el, L, scoreLines, 60, () => {
+                    t(() => {
+                        const scoreIdx = L.length - 6;
+                        const template = '║       最终得分：    <span class="c-amb">{{N}}</span>';
+                        countUp(el, L, scoreIdx, template, 13, () => {
+                            L.push('');
+                            L.push('<span class="c-dim">凭证深度较浅——无CI，无验证命令。</span>');
+                            L.push('但实事已做。不是所有战功都需要测试套件。');
+                            el.innerHTML = L.join('\n');
+                        });
+                    }, 500);
+                });
+            });
+        };
+
+        // Scene 6: Kids Park + Deploy
+        scenes[6] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts waypoint "带孩子去公园。"', () => {
+                const waypointLines = [
+                    '┌─── 小目标已设 ───────────────────────────────',
+                    '│',
+                    '│  "带孩子去公园。"',
+                    '│',
+                    '│  征途不是全部。生活才是。',
+                    '│  良将知进退，亦知休养。',
+                    '│',
+                    '└──────────────────────────────────────────────'
+                ];
+                revealLines(el, L, waypointLines, 100, () => {
+                    t(() => {
+                        L.push('');
+                        typeCmd(el, L, 'ship-receipts waypoint --done', () => {
+                            const doneLines = [
+                                '<span class="c-grn">✓</span> 小目标已完成："带孩子去公园。"',
+                                '  用时：1小时30分。',
+                                '  <span class="c-amb">今日最佳小目标。</span>'
+                            ];
+                            revealLines(el, L, doneLines, 100, () => {
+                                t(() => {
+                                    L.push('');
+                                    typeCmd(el, L, 'ship-receipts init', () => {
+                                        const receiptLines = [
+                                            '┌─── 创建凭证 ─────────────────────────────────',
+                                            '│',
+                                            '│  主题：       落地页部署上线',
+                                            '│  类型：       部署',
+                                            '│  产物：       shipreceipts.com',
+                                            '│  提交哈希：   b3c8d2e...',
+                                            '│  内容哈希：   sha256:7e9a1b3c...',
+                                            '│  CI 链接：    github.com/.../actions/runs/54321',
+                                            '│  验证命令：   curl -s https://shipreceipts.com | grep "prove"',
+                                            '│',
+                                            '└──────────────────────────────────────────────'
+                                        ];
+                                        revealLines(el, L, receiptLines, 80, () => {
+                                            L.push('');
+                                            L.push('<span class="c-grn">✓ 凭证已创建：</span>.ship-receipts/receipts/2026-03-01-1645.json');
+                                            el.innerHTML = L.join('\n');
+                                        });
+                                    });
+                                }, 800);
+                            });
+                        });
+                    }, 1000);
+                });
+            });
+        };
+
+        // Scene 7: Deploy Score + Compass + Export + Voyage + Signoff
+        scenes[7] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts score 2026-03-01-1645.json', () => {
+                const scoreLines = [
+                    '╔═══════════════════════════════════════════════',
+                    '║              战果评定',
+                    '╠═══════════════════════════════════════════════',
+                    '║',
+                    '║  主题名称 ................... +1',
+                    '║  关联身份 ................... +2',
+                    '║  时间戳 ..................... +1',
+                    '║  内容哈希 (SHA-256) ......... +3  <span class="c-grn">✓ 有效</span>',
+                    '║  不可篡改引用 ............... +2',
+                    '║  校验和 ..................... +3  <span class="c-grn">✓ 已验证</span>',
+                    '║  CI 链接 .................... +1',
+                    '║  验证命令 ................... +2',
+                    '║                            ─────',
+                    '║  基础分                      15',
+                    '║',
+                    '║  五日连胜 ................... ×1.25',
+                    '║  完整性加成 ................. ×1.50',
+                    '║',
+                    '║  ═══════════════════════════════',
+                    '║       最终得分：    <span class="c-amb">{{N}}</span>',
+                    '║  ═══════════════════════════════',
+                    '║',
+                    '╚═══════════════════════════════════════════════'
+                ];
+                revealLines(el, L, scoreLines, 60, () => {
+                    t(() => {
+                        const scoreIdx = L.length - 6;
+                        const template = '║       最终得分：    <span class="c-amb">{{N}}</span>';
+                        countUp(el, L, scoreIdx, template, 28, () => {
+                            t(() => {
+                                L.push('');
+                                typeCmd(el, L, 'ship-receipts compass', () => {
+                                    const compassLines = [
+                                        '┌─── 🧭 军师谏言 ──────────────────────────────',
+                                        '│',
+                                        '│  志向："让一个项目开始盈利。"',
+                                        '│  今日：落地页部署上线',
+                                        '│',
+                                        '│  ── 谋略 ──────────────────────────────'
+                                    ];
+                                    revealLines(el, L, compassLines, 80, () => {
+                                        L.push('│');
+                                        el.innerHTML = L.join('\n');
+                                        t(() => {
+                                            streamText(el, L, '出征了。上线了。天下可见。\n\n这是你第一次将所造之物展示于人前。\n这是另一种凭证——天下人皆可查验。\n\n现在，分享给一个人。不是发微博，\n不是上 Product Hunt。一个人。\n一个你尊重的人。发链接，问看法。\n\n盈利始于一次真诚的对话。', '│  ', () => {
+                                                L.push('│');
+                                                L.push('│  方位：<span class="c-amb">◉ 航向正确 · 东风渐起</span>');
+                                                L.push('│');
+                                                L.push('└──────────────────────────────────────────────');
+                                                el.innerHTML = L.join('\n');
+                                                t(() => {
+                                                    L.push('');
+                                                    typeCmd(el, L, 'ship-receipts export --to proofofship 2026-03-01-1645.json', () => {
+                                                        const exportLines = [
+                                                            '┌─── 战报已传 ─────────────────────────────────',
+                                                            '│',
+                                                            '│  → proofofship.com/verify',
+                                                            '│',
+                                                            '│  <span class="c-grn">✓ 提交存在</span>（公开仓库）',
+                                                            '│  <span class="c-grn">✓ 推送权限已确认</span>',
+                                                            '│  <span class="c-grn">✓ 内容哈希匹配</span>',
+                                                            '│  <span class="c-grn">✓ CI 状态：通过</span>',
+                                                            '│',
+                                                            '│  核验深度：0.85 / 1.00',
+                                                            '│  [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░] 85%',
+                                                            '│',
+                                                            '│  已发布：proofofship.com/u/pro777',
+                                                            '│  天下排名：第127位 ↑15',
+                                                            '│',
+                                                            '│  "从此，天下人皆可验证你的征途。"',
+                                                            '│',
+                                                            '└──────────────────────────────────────────────'
+                                                        ];
+                                                        revealLines(el, L, exportLines, 80, () => {
+                                                            t(() => {
+                                                                L.push('');
+                                                                typeCmd(el, L, 'ship-receipts voyage', () => {
+                                                                    const voyageLines = [
+                                                                        '┌─── 征途纪略 ─────────────────────────────────',
+                                                                        '│',
+                                                                        '│  志向："让一个项目开始盈利。"',
+                                                                        '│  第23日 · 连胜：5日 <span class="c-red">🔥</span>',
+                                                                        '│',
+                                                                        '│  ── 今日战果 ──────────────────────────────',
+                                                                        '│',
+                                                                        '│  <span class="c-grn">✓ ship-receipts 落地页</span>               26分',
+                                                                        '│  <span class="c-grn">✓ 定价策略文档</span>                       13分',
+                                                                        '│  <span class="c-grn">✓ 落地页部署上线</span>                     28分',
+                                                                        '│  │                                    ───────',
+                                                                        '│  │  今日总计：                            <span class="c-amb">67分</span>',
+                                                                        '│',
+                                                                        '│  小目标完成：3/3',
+                                                                        '│    <span class="c-grn">✓ 出门散步，看日出。</span>',
+                                                                        '│    <span class="c-grn">✓ 和老张喝杯咖啡。</span>',
+                                                                        '│    <span class="c-grn">✓ 带孩子去公园。</span>',
+                                                                        '│',
+                                                                        '│  ── 行军日志 ──────────────────────────────',
+                                                                        '│',
+                                                                        '│  二月  ░░░░░░░░░░░░░░░░░░░█████████░',
+                                                                        '│  三月  █',
+                                                                        '│',
+                                                                        '│  ── 战功 ──────────────────────────────────',
+                                                                        '│',
+                                                                        '│  ✦ 首张凭证              第1日     ⚓',
+                                                                        '│  ✦ 五日连胜              第19日    ×1.25  ← <span class="c-amb">当前</span>',
+                                                                        '│  ○ 周连胜                 —        ×1.50',
+                                                                        '│  ○ 月连胜                 —        ×2.00',
+                                                                        '│  ○ 首次认证               —        未解锁',
+                                                                        '│',
+                                                                        '│  累计：412分 · 23张凭证 · 均分：17.9',
+                                                                        '│',
+                                                                        '└──────────────────────────────────────────────'
+                                                                    ];
+                                                                    revealLines(el, L, voyageLines, 60, () => {
+                                                                        L.push('');
+                                                                        L.push('    ◇ ═════════════════════════════════════ ◆');
+                                                                        L.push('    🏴 将军辛苦。好生歇息。明日山河依旧在。 🏴');
+                                                                        L.push('    ◆ ═════════════════════════════════════ ◇');
+                                                                        el.innerHTML = L.join('\n');
+                                                                        t(() => {
+                                                                            L.push('');
+                                                                            L.push('<span style="text-align: center; display: block;">         ⚔</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">        /|\\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">       / | \\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">      /  |  \\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">     /   |   \\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">    /____|____\\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">     ||    ||</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">     征    途</span>');
+                                                                            el.innerHTML = L.join('\n');
+                                                                        }, 400);
+                                                                    });
+                                                                });
+                                                            }, 600);
+                                                        });
+                                                    });
+                                                }, 400);
+                                            });
+                                        }, 400);
+                                    });
+                                });
+                            }, 800);
+                        });
+                    }, 500);
+                });
+            });
+        };
+
+        function goToSlide(n) {
+            if (n >= totalSlides) {
+                currentSlide = totalSlides - 1;
+            } else if (n < 0) {
+                currentSlide = 0;
+            } else {
+                currentSlide = n;
+            }
+
+            clearAll();
+
+            // Create slide element if it doesn't exist
+            let slideEl = document.getElementById('slide-' + currentSlide);
+            if (!slideEl) {
+                const container = document.getElementById('slidesContainer');
+                slideEl = document.createElement('pre');
+                slideEl.id = 'slide-' + currentSlide;
+                container.appendChild(slideEl);
+            }
+
+            // Update active slide
+            const allSlides = document.querySelectorAll('#slidesContainer pre');
+            allSlides.forEach((slide, idx) => {
+                slide.classList.toggle('active', idx === currentSlide);
+            });
+
+            // Render scene
+            scenes[currentSlide](slideEl);
+
+            // Update dots
+            updateDots();
+
+            // Update scene counter
+            document.getElementById('sceneCounter').textContent = `第 ${currentSlide + 1} 页 / 共 ${totalSlides} 页`;
+
+            // Update progress bar
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            // Update buttons
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+
+            // Reset timer
+            if (isAutoAdvancing) {
+                resetAutoAdvanceTimer();
+            }
+
+            // Stop auto-advance at last slide
+            if (currentSlide === totalSlides - 1 && isAutoAdvancing) {
+                clearTimeout(autoAdvanceTimer);
+                isAutoAdvancing = false;
+                updateAutoStatus();
+            }
+        }
+
+        function nextSlide() {
+            goToSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(currentSlide - 1);
+        }
+
+        function resetAutoAdvanceTimer() {
+            clearTimeout(autoAdvanceTimer);
+            const timerFill = document.getElementById('timerFill');
+            timerFill.classList.remove('animating');
+
+            if (isAutoAdvancing && currentSlide < totalSlides - 1) {
+                setTimeout(() => {
+                    timerFill.classList.add('animating');
+                }, 10);
+
+                autoAdvanceTimer = setTimeout(() => {
+                    goToSlide(currentSlide + 1);
+                }, 10000);
+            }
+        }
+
+        function toggleAutoAdvance() {
+            isAutoAdvancing = !isAutoAdvancing;
+            updateAutoStatus();
+            if (isAutoAdvancing && currentSlide < totalSlides - 1) {
+                resetAutoAdvanceTimer();
+            } else {
+                clearTimeout(autoAdvanceTimer);
+                document.getElementById('timerFill').classList.remove('animating');
+            }
+        }
+
+        function updateAutoStatus() {
+            const autoStatus = document.getElementById('autoStatus');
+            const statusIcon = autoStatus.querySelector('.status-icon');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+
+            if (isAutoAdvancing) {
+                statusIcon.textContent = '▶';
+                autoStatus.textContent = '';
+                autoStatus.innerHTML = '<span class="status-icon">▶</span> <span>自动</span>';
+                playPauseBtn.textContent = '⏸ 暂停';
+                autoStatus.classList.remove('paused');
+            } else {
+                statusIcon.textContent = '⏸';
+                autoStatus.textContent = '';
+                autoStatus.innerHTML = '<span class="status-icon">⏸</span> <span>暂停</span>';
+                playPauseBtn.textContent = '▶ 继续';
+                autoStatus.classList.add('paused');
+            }
+        }
+
+        function updateDots() {
+            const container = document.getElementById('dotsContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('button');
+                dot.className = 'dot-btn';
+                if (i === currentSlide) dot.classList.add('active');
+                dot.onclick = () => goToSlide(i);
+                container.appendChild(dot);
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevSlide();
+            else if (e.key === 'ArrowRight') nextSlide();
+            else if (e.key === ' ') {
+                e.preventDefault();
+                toggleAutoAdvance();
+            }
+        });
+
+        // Initialize
+        updateDots();
+        goToSlide(0);
+    </script>
+</body>
+</html>

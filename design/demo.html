@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ship-receipts: Interactive Terminal Demo</title>
+  <style>
+    :root {
+      --green:  #4ec9b0;
+      --yellow: #dcdcaa;
+      --cyan:   #9cdcfe;
+      --red:    #f44747;
+      --dim:    #6a9955;
+      --bright: #d4d4d4;
+      --bg:     #1e1e1e;
+      --chrome: #252526;
+      --border: #3c3c3c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #111;
+      font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    /* ── Terminal window ── */
+    .window {
+      width: 100%;
+      max-width: 860px;
+      height: 100%;
+      max-height: 620px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      overflow: hidden;
+    }
+
+    /* ── Title bar ── */
+    .titlebar {
+      background: var(--chrome);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot.red    { background: #ff5f57; }
+    .dot.yellow { background: #febc2e; }
+    .dot.green  { background: #28c840; }
+
+    .titlebar-label {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: #858585;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Terminal body ── */
+    .terminal {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 22px 26px;
+      background: var(--bg);
+      color: var(--bright);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .terminal::-webkit-scrollbar { width: 6px; }
+    .terminal::-webkit-scrollbar-track { background: transparent; }
+    .terminal::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+
+    pre {
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 0;
+    }
+
+    /* ── Footer / controls ── */
+    .footer {
+      background: var(--chrome);
+      border-top: 1px solid var(--border);
+      padding: 9px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .footer-hint {
+      font-size: 11px;
+      color: #555;
+    }
+
+    .scene-counter {
+      font-size: 11px;
+      color: #666;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      background: #2d2d2d;
+      border: 1px solid var(--border);
+      color: #aaa;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      border-radius: 3px;
+      transition: background 0.15s, color 0.15s;
+    }
+    button:hover:not(:disabled) {
+      background: #3a3a3a;
+      color: var(--cyan);
+    }
+    button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* ── Color utilities ── */
+    .g  { color: var(--green); }
+    .y  { color: var(--yellow); }
+    .c  { color: var(--cyan); }
+    .r  { color: var(--red); }
+    .d  { color: var(--dim); }
+    .b  { color: var(--bright); }
+
+    /* blinking cursor */
+    .cur { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── Progress bar (top of terminal) ── */
+    .prog-bar {
+      height: 2px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .prog-fill {
+      height: 100%;
+      background: var(--green);
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <div class="dots">
+        <div class="dot red"></div>
+        <div class="dot yellow"></div>
+        <div class="dot green"></div>
+      </div>
+      <div class="titlebar-label">ship-receipts — demo</div>
+    </div>
+    <div class="prog-bar">
+      <div class="prog-fill" id="progFill" style="width:14%"></div>
+    </div>
+
+    <div class="terminal">
+      <pre id="output"></pre>
+    </div>
+
+    <div class="footer">
+      <div class="footer-hint">space / → to advance  ·  ← to go back</div>
+      <div class="nav-btns">
+        <button id="prevBtn" disabled>← Back</button>
+        <button id="nextBtn">Next →</button>
+      </div>
+      <div class="scene-counter" id="sceneCounter">Scene 1 of 7</div>
+    </div>
+  </div>
+
+  <script>
+    // ── helpers ────────────────────────────────────────────────────────────────
+    const out = document.getElementById('output');
+    let _timers = [];
+
+    function T(fn, ms) {
+      const id = setTimeout(fn, ms);
+      _timers.push(id);
+      return id;
+    }
+
+    function clearTimers() {
+      _timers.forEach(clearTimeout);
+      _timers = [];
+    }
+
+    // span helpers
+    const G  = s => `<span class="g">${s}</span>`;
+    const Y  = s => `<span class="y">${s}</span>`;
+    const C  = s => `<span class="c">${s}</span>`;
+    const D  = s => `<span class="d">${s}</span>`;
+    const B  = s => `<span class="b">${s}</span>`;
+    const CUR = () => `<span class="cur">█</span>`;
+
+    // render lines array
+    function render(L) { out.innerHTML = L.join('\n'); }
+
+    // type a command then call cb
+    function typeCmd(L, cmd, cb) {
+      let i = 0;
+      const prefix = D('$ ');
+      const type = () => {
+        L[L.length - 1] = prefix + cmd.substring(0, i) + CUR();
+        render(L);
+        if (i < cmd.length) {
+          i++;
+          T(type, 28 + Math.random() * 18);
+        } else {
+          L[L.length - 1] = prefix + C(cmd);
+          render(L);
+          if (cb) T(cb, 320);
+        }
+      };
+      L.push('');
+      type();
+    }
+
+    // reveal lines one by one
+    function revealLines(L, lines, delay, cb) {
+      let i = 0;
+      const go = () => {
+        if (i < lines.length) {
+          L.push(lines[i++]);
+          render(L);
+          T(go, delay);
+        } else if (cb) T(cb, 200);
+      };
+      go();
+    }
+
+    // type paragraph char by char into last line placeholder
+    function typeParagraph(L, text, msPer, cb) {
+      let i = 0;
+      const base = L.length;
+      // placeholder
+      L.push('');
+      const go = () => {
+        L[base] = text.substring(0, i);
+        render(L);
+        if (i < text.length) {
+          i++;
+          T(go, msPer);
+        } else if (cb) T(cb, 300);
+      };
+      go();
+    }
+
+    // ── scenes ─────────────────────────────────────────────────────────────────
+
+    const scenes = [
+
+      // 1 — title
+      function sceneTitle(L) {
+        const lines = [
+          '',
+          '    ' + G('   ⚓') + '  ' + Y('ship-receipts'),
+          '',
+          '    ' + D('proof of work, one commit at a time.'),
+          '',
+          '',
+          '    ' + D('press') + ' ' + C('space') + ' ' + D('to begin your odyssey →'),
+          '',
+        ];
+        revealLines(L, lines, 90);
+      },
+
+      // 2 — goal declaration
+      function sceneGoal(L) {
+        typeCmd(L, 'ship-receipts goal set "Get one project producing revenue"', () => {
+          revealLines(L, [
+            '',
+            '  ' + G('✓') + ' ' + B('Goal saved.'),
+            '',
+            '    ' + D('Your Ithaca:'),
+            '    ' + Y('"Get one project producing revenue"'),
+            '',
+            '    ' + D('Every receipt is a waypoint.'),
+            '    ' + D('Every streak is wind in your sails.'),
+            '',
+            '    ' + G('⚓') + ' ' + D('Day 1 of your Odyssey.'),
+            '',
+          ], 60);
+        });
+      },
+
+      // 3 — init flow
+      function sceneInit(L) {
+        typeCmd(L, 'ship-receipts init', () => {
+          revealLines(L, [
+            '',
+            '  ' + D('Artifact name:') + '  ' + B('proofofship-api'),
+            '  ' + D('Artifact URL: ') + '  ' + C('https://github.com/Pro777/proofofship'),
+            '  ' + D('Commit SHA:   ') + '  ' + B('a3f8c12'),
+            '  ' + D('Description:  ') + '  ' + B('Wired up Stripe webhooks for $5/month subscription'),
+            '',
+          ], 120, () => {
+            revealLines(L, [
+              '  ' + G('✓') + ' ' + D('Subject:      ') + B('John Malone') + ' ' + D('(from git config)'),
+              '  ' + G('✓') + ' ' + D('Timestamp:    ') + B('2026-03-01T09:30:00Z'),
+              '  ' + G('✓') + ' ' + D('Content hash: ') + B('sha256:7f3d...'),
+              '',
+              '  ' + Y('Preview: This receipt will score ~14 points'),
+              '',
+              '  ' + G('Written:') + ' ' + D('.ship-receipts/receipts/proofofship-api-2026-03-01.json'),
+              '',
+            ], 80);
+          });
+        });
+      },
+
+      // 4 — score display
+      function sceneScore(L) {
+        typeCmd(L, 'ship-receipts score .ship-receipts/receipts/proofofship-api-2026-03-01.json', () => {
+          revealLines(L, [
+            '',
+            '  ' + D('Receipt: ') + B('proofofship-api-2026-03-01.json'),
+            '  ' + D('Subject: ') + B('John Malone'),
+            '  ' + D('Status:  ') + G('ACCEPTED'),
+            '',
+            '  ' + D('Base Score:          ') + B('14'),
+            '  ' + D('Streak Multiplier:   ') + Y('1.25x') + ' ' + D('(3-day streak)'),
+            '  ' + D('Integrity Bonus:     ') + Y('1.0x'),
+            '  ' + D('─────────────────────────'),
+            '  ' + D('Final Score:         ') + G('17'),
+            '',
+            '  ' + D('Proof Breakdown:'),
+            '    ' + D('subject.name                  ') + B('1'),
+            '    ' + D('subject.profiles              ') + B('2'),
+            '    ' + D('meta.created_at               ') + B('1'),
+            '    ' + D('meta.content_hash             ') + B('3'),
+            '    ' + D('artifact[0].immutable_ref     ') + B('2'),
+            '    ' + D('artifact[0].verify[0].link    ') + B('1'),
+            '    ' + D('                             ──'),
+            '    ' + D('Base Total                   ') + B('10'),
+            '',
+            '  ' + D('Streak: ') + Y('3 days') + ' ' + D('(next multiplier at 7 days: ') + Y('1.5x') + D(')'),
+            '  ' + D('Confidence: ') + Y('moderate'),
+            '  ' + D('Total Score: ') + G('47') + ' ' + D('(5 receipts)'),
+            '',
+          ], 45);
+        });
+      },
+
+      // 5 — compass response
+      function sceneCompass(L) {
+        const header = [
+          '',
+          '  ' + C('Compass') + ' ' + D('──────────────────────────────────────────────'),
+          '',
+        ];
+        revealLines(L, header, 80, () => {
+          const reflection =
+            '  "Wiring up Stripe webhooks is exactly the needle-mover.\n' +
+            '   Revenue is now technically possible. Ship the landing\n' +
+            '   page next and you\'ll have the full loop. This counts."';
+          let i = 0;
+          const base = L.length;
+          L.push('');
+          const go = () => {
+            // split into lines for rendering
+            const text = reflection.substring(0, i);
+            const reflLines = text.split('\n');
+            const temp = L.slice(0, base);
+            reflLines.forEach((ln, idx) => {
+              // first line gets yellow, rest bright
+              temp.push(idx === 0 ? Y(ln) : B(ln));
+            });
+            out.innerHTML = temp.join('\n');
+            if (i < reflection.length) { i++; T(go, 22); }
+            else {
+              L.length = base;
+              reflection.split('\n').forEach((ln, idx) => {
+                L.push(idx === 0 ? Y(ln) : B(ln));
+              });
+              T(() => {
+                revealLines(L, [
+                  '',
+                  '  ' + D('──────────────────────────────────────────────────────'),
+                  '',
+                ], 80);
+              }, 300);
+            }
+          };
+          go();
+        });
+      },
+
+      // 6 — streak view
+      function sceneStreak(L) {
+        typeCmd(L, 'ship-receipts streak', () => {
+          revealLines(L, [
+            '',
+            '  ' + D('Current streak: ') + G('3') + ' ' + G('days') + '  🔥',
+            '',
+            '  ' + D('Mar 15  ') + G('█'),
+            '  ' + D('Mar 16  ') + G('█'),
+            '  ' + D('Mar 17  ') + G('█') + '  ' + D('← today'),
+            '',
+            '  ' + D('Tier progress:'),
+            '    ' + G('✓') + ' ' + D('3-day streak    ') + Y('1.25x'),
+            '    ' + D('○ 7-day streak    ') + D('1.50x  (4 days away)'),
+            '    ' + D('○ 30-day streak   ') + D('2.00x  (locked)'),
+            '',
+            '  ' + D('Next milestone: ') + Y('7-day streak') + ' ' + D('→ ') + Y('1.5x multiplier'),
+            '  ' + D('Keep shipping. Don\'t break the chain.'),
+            '',
+          ], 60);
+        });
+      },
+
+      // 7 — export
+      function sceneExport(L) {
+        typeCmd(L, 'ship-receipts export --proof-envelope', () => {
+          revealLines(L, [
+            '',
+            '  ' + D('Generating proof envelope...'),
+            '',
+          ], 80, () => {
+            revealLines(L, [
+              '  ' + G('✓') + ' ' + D('Receipts packed:   ') + B('5'),
+              '  ' + G('✓') + ' ' + D('Hashes verified:   ') + B('5 / 5'),
+              '  ' + G('✓') + ' ' + D('Signatures valid:  ') + B('5 / 5'),
+              '  ' + G('✓') + ' ' + D('Streak data:       ') + B('included'),
+              '',
+            ], 200, () => {
+              revealLines(L, [
+                '  ' + D('Envelope written:'),
+                '  ' + C('.ship-receipts/exports/proof-envelope-2026-03-01.json'),
+                '',
+                '  ' + D('Share with:'),
+                '  ' + C('https://proofofship.com/verify') + '  ' + D('(drag & drop)'),
+                '  ' + D('or: ') + C('ship-receipts publish --to proofofship'),
+                '',
+                '  ' + Y('"Your work is now verifiable by anyone."'),
+                '',
+              ], 80);
+            });
+          });
+        });
+      },
+
+    ];
+
+    // ── navigation ─────────────────────────────────────────────────────────────
+
+    let current = 0;
+    const total = scenes.length;
+
+    function showScene(n) {
+      clearTimers();
+      current = Math.max(0, Math.min(n, total - 1));
+      const L = [];
+      scenes[current](L);
+
+      document.getElementById('progFill').style.width = ((current + 1) / total * 100) + '%';
+      document.getElementById('sceneCounter').textContent = `Scene ${current + 1} of ${total}`;
+      document.getElementById('prevBtn').disabled = current === 0;
+      document.getElementById('nextBtn').disabled = current === total - 1;
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => showScene(current - 1));
+    document.getElementById('nextBtn').addEventListener('click', () => showScene(current + 1));
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        if (current < total - 1) showScene(current + 1);
+      }
+      if (e.key === 'ArrowLeft') {
+        if (current > 0) showScene(current - 1);
+      }
+    });
+
+    // start
+    showScene(0);
+  </script>
+</body>
+</html>

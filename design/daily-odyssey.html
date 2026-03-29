@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ship-receipts &middot; Daily Odyssey</title>
+    <style>
+        :root {
+            --bg: #1d2021;
+            --bg1: #282828;
+            --bg2: #3c3836;
+            --bg3: #504945;
+            --fg: #ebdbb2;
+            --fg-dim: #665c54;
+            --orange: #fe8019;
+            --yellow: #fabd2f;
+            --aqua: #8ec07c;
+            --purple: #d3869b;
+            --red: #fb4934;
+            --blue: #83a598;
+            --green: #b8bb26;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--fg);
+            font-family: 'Menlo','Monaco','Courier New',monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* ── TOP BAR ── */
+        .topbar {
+            background: var(--bg1);
+            border-bottom: 1px solid var(--bg2);
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .topbar .left { color: var(--orange); }
+        .topbar .center { color: var(--fg-dim); }
+        .topbar .right { color: var(--aqua); }
+        .topbar .fire { color: var(--red); }
+        .topbar .streak-num { color: var(--yellow); font-weight: bold; }
+
+        /* ── MAIN AREA ── */
+        .main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            grid-template-rows: 1fr auto;
+            overflow: hidden;
+            gap: 0;
+        }
+
+        /* ── ACTIVITY FEED (left) ── */
+        .feed {
+            grid-row: 1 / 3;
+            border-right: 1px solid var(--bg2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .feed-header {
+            background: var(--bg1);
+            padding: 6px 12px;
+            border-bottom: 1px solid var(--bg2);
+            color: var(--fg-dim);
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .feed-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 12px;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .feed-body::-webkit-scrollbar { width: 4px; }
+        .feed-body::-webkit-scrollbar-track { background: var(--bg); }
+        .feed-body::-webkit-scrollbar-thumb { background: var(--bg2); border-radius: 2px; }
+
+        /* ── SIDEBAR PANELS (right) ── */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            gap: 0;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-track { background: var(--bg); }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--bg2); border-radius: 2px; }
+
+        .panel {
+            border-bottom: 1px solid var(--bg2);
+            padding: 8px 10px;
+        }
+        .panel-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--fg-dim);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .panel-title .icon { color: var(--orange); }
+
+        /* Progress bar */
+        .progress-track {
+            height: 8px;
+            background: var(--bg2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 4px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .progress-fill.orange { background: linear-gradient(90deg, var(--red), var(--orange), var(--yellow)); }
+        .progress-fill.aqua { background: linear-gradient(90deg, var(--blue), var(--aqua), var(--green)); }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            font-size: 11px;
+        }
+        .stat-label { color: var(--fg-dim); }
+        .stat-value { font-weight: bold; }
+        .stat-value.org { color: var(--orange); }
+        .stat-value.yel { color: var(--yellow); }
+        .stat-value.aqu { color: var(--aqua); }
+        .stat-value.grn { color: var(--green); }
+        .stat-value.red { color: var(--red); }
+        .stat-value.pur { color: var(--purple); }
+
+        /* Waypoint dots */
+        .wp-dots {
+            display: flex;
+            gap: 6px;
+            margin: 4px 0;
+        }
+        .wp-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid var(--bg3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: var(--bg3);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .wp-dot.filled {
+            border-color: var(--aqua);
+            background: var(--aqua);
+            color: var(--bg);
+        }
+        .wp-dot.active {
+            border-color: var(--yellow);
+            box-shadow: 0 0 6px rgba(250,189,47,0.5);
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { box-shadow: 0 0 4px rgba(250,189,47,0.3); }
+            50% { box-shadow: 0 0 10px rgba(250,189,47,0.7); }
+        }
+
+        /* Crew log entries */
+        .crew-entry {
+            display: flex;
+            gap: 8px;
+            padding: 3px 0;
+            font-size: 11px;
+            opacity: 0;
+            transform: translateX(-8px);
+            animation: slideIn 0.4s ease-out forwards;
+        }
+        .crew-entry .time { color: var(--fg-dim); min-width: 36px; }
+        .crew-entry .icon { min-width: 14px; }
+        .crew-entry .desc { color: var(--fg); }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── PROMPT BAR (bottom of feed) ── */
+        .prompt-bar {
+            border-top: 1px solid var(--bg2);
+            padding: 8px 12px;
+            background: var(--bg1);
+            font-size: 12px;
+            flex-shrink: 0;
+            min-height: 36px;
+            white-space: pre-wrap;
+        }
+        .prompt-prefix { color: var(--aqua); }
+        .prompt-arrow { color: var(--fg-dim); }
+        .prompt-text { color: var(--orange); }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+        .cursor-blink { animation: blink 0.8s infinite; color: var(--orange); }
+
+        /* ── GOAL MET BANNER ── */
+        .goal-banner {
+            background: linear-gradient(90deg, rgba(250,189,47,0.15), rgba(142,192,124,0.15));
+            border: 1px solid var(--yellow);
+            padding: 8px 10px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--yellow);
+            font-weight: bold;
+            animation: goal-glow 2s infinite;
+        }
+        @keyframes goal-glow {
+            0%, 100% { box-shadow: inset 0 0 8px rgba(250,189,47,0.1); }
+            50% { box-shadow: inset 0 0 16px rgba(250,189,47,0.25); }
+        }
+
+        /* ── COMPASS WIDGET ── */
+        .compass-widget {
+            text-align: center;
+            padding: 4px;
+        }
+        .compass-rose {
+            font-size: 28px;
+            display: block;
+            margin: 2px 0;
+            animation: spin-slow 20s linear infinite;
+        }
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .bearing-text {
+            font-size: 10px;
+            color: var(--purple);
+            font-style: italic;
+        }
+
+        /* ── XP TICKER ── */
+        .xp-display {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--yellow);
+            text-align: center;
+            padding: 4px 0;
+            text-shadow: 0 0 12px rgba(250,189,47,0.3);
+            transition: all 0.5s;
+        }
+        .xp-label {
+            font-size: 10px;
+            color: var(--fg-dim);
+            text-align: center;
+        }
+
+        /* ── MULTIPLIER BADGE ── */
+        .mult-badge {
+            display: inline-block;
+            background: var(--bg2);
+            border: 1px solid var(--orange);
+            border-radius: 3px;
+            padding: 2px 8px;
+            font-size: 11px;
+            color: var(--orange);
+            font-weight: bold;
+        }
+
+        /* ── BOTTOM CONTROLS ── */
+        .controls {
+            background: var(--bg1);
+            border-top: 1px solid var(--bg2);
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .ctrl-group { display: flex; gap: 6px; align-items: center; }
+        .dot-group { display: flex; gap: 3px; }
+        .nav-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--bg3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-dot.active { background: var(--yellow); box-shadow: 0 0 4px rgba(250,189,47,0.4); }
+        .nav-dot.past { background: var(--aqua); }
+        #timeLabel { color: var(--aqua); min-width: 120px; text-align: center; }
+
+        /* ── CRT OVERLAY ── */
+        .crt {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.04),
+                rgba(0,0,0,0.04) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+        }
+
+        /* Feed entry colors */
+        .f-org { color: var(--orange); }
+        .f-aqu { color: var(--aqua); }
+        .f-grn { color: var(--green); }
+        .f-yel { color: var(--yellow); }
+        .f-pur { color: var(--purple); }
+        .f-red { color: var(--red); }
+        .f-dim { color: var(--fg-dim); }
+        .f-blu { color: var(--blue); }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <!-- TOP STATUS BAR -->
+    <div class="topbar">
+        <div class="left">&#9973; ship-receipts v0.8.2</div>
+        <div class="center" id="clock">08:55</div>
+        <div class="right">
+            Streak: <span class="streak-num">8d</span> <span class="fire">&#128293;</span>
+            &nbsp;&middot;&nbsp;
+            <span class="mult-badge" id="multBadge">&times;1.50</span>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main">
+        <!-- LEFT: Activity Feed -->
+        <div class="feed">
+            <div class="feed-header" id="feedHeader">ACTIVITY FEED &middot; Odyssey Mode &middot; Day 12</div>
+            <div class="feed-body" id="feedBody"></div>
+            <div class="prompt-bar" id="promptBar">
+                <span class="prompt-prefix">odyssey</span> <span class="prompt-arrow">&#8250;</span> <span class="cursor-blink">&#9608;</span>
+            </div>
+        </div>
+
+        <!-- RIGHT: Sidebar Dashboard -->
+        <div class="sidebar" id="sidebar">
+            <!-- Ithaca Progress -->
+            <div class="panel">
+                <div class="panel-title"><span class="icon">&#9973;</span> ITHACA</div>
+                <div style="color:var(--fg);font-size:11px;margin-bottom:4px;">Launch v1.0</div>
+                <div class="progress-track">
+                    <div class="progress-fill orange" id="ithacaBar" style="width:42%"></div>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Progress</span>
+                    <span class="stat-value org" id="ithacaPct">42%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">ETA</span>
+                    <span class="stat-value" id="ithacaEta">~12 days</span>
+                </div>
+            </div>
+
+            <!-- XP -->
+            <div class="panel" style="text-align:center;">
+                <div class="xp-display" id="xpDisplay">+0</div>
+                <div class="xp-label">XP TODAY</div>
+            </div>
+
+            <!-- Waypoints -->
+            <div class="panel">
+                <div class="panel-title"><span class="icon">&#9875;</span> WAYPOINTS</div>
+                <div class="wp-dots" id="wpDots">
+                    <div class="wp-dot" id="wp0">1</div>
+                    <div class="wp-dot" id="wp1">2</div>
+                    <div class="wp-dot" id="wp2">3</div>
+                    <div class="wp-dot" id="wp3">4</div>
+                    <div class="wp-dot" id="wp4">5</div>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Daily goal</span>
+                    <span class="stat-value aqu" id="wpCount">0 / 5</span>
+                </div>
+            </div>
+
+            <!-- Compass -->
+            <div class="panel">
+                <div class="panel-title"><span class="icon">&#129517;</span> COMPASS</div>
+                <div class="compass-widget">
+                    <span class="compass-rose">&#129517;</span>
+                    <div class="bearing-text" id="bearing">Setting course...</div>
+                </div>
+            </div>
+
+            <!-- Crew Log -->
+            <div class="panel" id="crewPanel">
+                <div class="panel-title"><span class="icon">&#128220;</span> CREW LOG</div>
+                <div id="crewLog"></div>
+            </div>
+
+            <!-- Goal Banner (hidden until met) -->
+            <div class="goal-banner" id="goalBanner" style="display:none;">
+                &#11088; DAILY GOAL MET &#11088;
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM CONTROLS -->
+    <div class="controls">
+        <div class="ctrl-group">
+            <button id="prevBtn">&#9664; Earlier</button>
+            <div class="dot-group" id="dots"></div>
+            <button id="nextBtn">Later &#9654;</button>
+        </div>
+        <div id="timeLabel">8:55 AM</div>
+        <div class="ctrl-group">
+            <button id="playBtn">&#9654; Auto (12s)</button>
+        </div>
+    </div>
+</div>
+
+<div class="crt"></div>
+
+<script>
+// ============================================
+// TIMER MANAGEMENT
+// ============================================
+var timers = [];
+function t(fn, ms) {
+    var tid = setTimeout(fn, ms);
+    timers.push(tid);
+    return tid;
+}
+function clearAll() {
+    timers.forEach(clearTimeout);
+    timers.length = 0;
+}
+
+// ============================================
+// SLIDE DATA
+// ============================================
+var slideData = [
+    {
+        time: '8:55 AM', clock: '08:55',
+        wp: 0, xp: 0, pct: 42, eta: '~12 days',
+        bearing: 'Setting course...',
+        crew: [],
+        goalMet: false,
+        feed: function(el, pr) {
+            addLine(el, '<span class="f-dim">$ ship-receipts odyssey --daily</span>', 0);
+            addLine(el, '', 100);
+            addLine(el, '<span class="f-org">&#9973;</span> ship-receipts v0.8.2', 300);
+            addLine(el, '<span class="f-dim">Loading voyage data...</span>', 500);
+            addLine(el, '', 800);
+            addLine(el, '<span class="f-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span>', 1000);
+            addLine(el, '', 1100);
+            addLine(el, '  Day 12 <span class="f-dim">&middot;</span> <span class="f-org">The Odyssey Continues</span>', 1300);
+            addLine(el, '  <span class="f-dim">"Even Odysseus had rough seas."</span>', 1500);
+            addLine(el, '', 1600);
+            addLine(el, '  <span class="f-org">ITHACA</span>: Launch v1.0', 1800);
+            addLine(el, '  Progress: <span class="f-org">&#9608;&#9608;&#9608;&#9608;</span><span class="f-dim">&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;</span> 42%', 2000);
+            addLine(el, '  Streak: 7d <span class="f-dim">&middot;</span> Multiplier: <span class="f-org">&times;1.50</span>', 2200);
+            addLine(el, '', 2400);
+            addLine(el, '<span class="f-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span>', 2500);
+            addLine(el, '', 2600);
+            addLine(el, "  Today's winds look favorable. Set sail?", 2800);
+            addLine(el, '', 2900);
+            typePrompt(pr, 'yes', 3200, 120);
+        }
+    },
+    {
+        time: '9:15 AM', clock: '09:15',
+        wp: 1, xp: 45, pct: 42, eta: '~12 days',
+        bearing: '"Quick fix before the big push"',
+        crew: [
+            { time: '09:12', icon: '&#9875;', desc: 'Auth fix shipped', color: 'f-aqu' }
+        ],
+        goalMet: false,
+        feed: function(el, pr) {
+            addLine(el, '<span class="f-aqu">09:12</span>  <span class="f-org">&#9875;</span> <span class="f-org">Git activity detected</span>', 0);
+            addLine(el, '        <span class="f-pur">pro777/api-service</span><span class="f-dim">@</span><span class="f-aqu">main</span>', 150);
+            addLine(el, '        fix: resolve auth token refresh (#247)', 300);
+            addLine(el, '        <span class="f-grn">+42</span> <span class="f-red">-12</span> across 3 files', 450);
+            addLine(el, '', 600);
+            addLine(el, '<span class="f-aqu">09:12</span>  <span class="f-grn">&#128230;</span> Waypoint auto-logged', 1000);
+            addLine(el, '        "Auth token refresh fix" <span class="f-dim">............</span> <span class="f-org">+45 XP</span>', 1200);
+            addLine(el, '', 1400);
+            addLine(el, '<span class="f-aqu">09:15</span>  <span class="f-pur">&#129517;</span> Compass prompt', 1800);
+            typePrompt(pr, '"Quick fix before the big feature push"', 2200, 35);
+        }
+    },
+    {
+        time: '10:30 AM', clock: '10:30',
+        wp: 2, xp: 165, pct: 48, eta: '~10 days',
+        bearing: '"Rate limiting was the last blocker"',
+        crew: [
+            { time: '09:12', icon: '&#9875;', desc: 'Auth fix shipped', color: 'f-aqu' },
+            { time: '10:30', icon: '&#129517;', desc: 'Rate limiter', color: 'f-pur' }
+        ],
+        goalMet: false,
+        feed: function(el, pr) {
+            addLine(el, '<span class="f-aqu">10:22</span>  <span class="f-org">&#128296;</span> <span class="f-org">Git activity detected</span>', 0);
+            addLine(el, '        <span class="f-pur">pro777/api-service</span><span class="f-dim">@</span><span class="f-aqu">feat/rate-limiting</span>', 150);
+            addLine(el, '        feat: add rate limiting middleware', 300);
+            addLine(el, '        <span class="f-grn">+187</span> <span class="f-red">-23</span> across 5 files', 450);
+            addLine(el, '', 600);
+            addLine(el, '<span class="f-aqu">10:28</span>  <span class="f-grn">&#9989;</span> CI Pipeline <span class="f-grn">passed</span>', 1000);
+            addLine(el, '        api-service <span class="f-dim">&#8250;</span> build <span class="f-dim">&#8250;</span> test <span class="f-dim">&#8250;</span> <span class="f-grn">deploy-staging</span>', 1150);
+            addLine(el, '        Duration: 4m 32s', 1300);
+            addLine(el, '', 1500);
+            addLine(el, '<span class="f-aqu">10:30</span>  <span class="f-grn">&#128230;</span> Waypoint auto-logged', 1800);
+            addLine(el, '        "Rate limiting middleware" <span class="f-dim">..........</span> <span class="f-org">+120 XP</span>', 2000);
+            addLine(el, '', 2200);
+            addLine(el, '<span class="f-aqu">10:31</span>  <span class="f-pur">&#129517;</span> Compass reflection', 2500);
+            typePrompt(pr, '"Rate limiting was the last blocker for public API beta"', 2800, 30);
+        }
+    },
+    {
+        time: '12:00 PM', clock: '12:00',
+        wp: 2, xp: 165, pct: 48, eta: '~10 days',
+        bearing: '"Public API beta is taking shape"',
+        crew: [
+            { time: '09:12', icon: '&#9875;', desc: 'Auth fix shipped', color: 'f-aqu' },
+            { time: '10:30', icon: '&#129517;', desc: 'Rate limiter', color: 'f-pur' }
+        ],
+        goalMet: false,
+        feed: function(el, pr) {
+            addLine(el, '<span class="f-aqu">12:00</span>  <span class="f-yel">&#9200;</span> <span class="f-yel">Midday bearing check</span>', 0);
+            addLine(el, '', 200);
+            addLine(el, '  <span class="f-dim">&#9484;&#9472;</span> VOYAGE STATUS <span class="f-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>', 400);
+            addLine(el, '  <span class="f-dim">&#9474;</span>                                                <span class="f-dim">&#9474;</span>', 500);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Morning haul:                                <span class="f-dim">&#9474;</span>', 600);
+            addLine(el, '  <span class="f-dim">&#9474;</span>    2 waypoints <span class="f-dim">&middot;</span> +165 XP <span class="f-dim">&middot;</span> 1 deploy       <span class="f-dim">&#9474;</span>', 700);
+            addLine(el, '  <span class="f-dim">&#9474;</span>                                                <span class="f-dim">&#9474;</span>', 800);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Compass bearing: <span class="f-grn">ON COURSE</span>                <span class="f-dim">&#9474;</span>', 900);
+            addLine(el, '  <span class="f-dim">&#9474;</span>                                                <span class="f-dim">&#9474;</span>', 1000);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Suggested next heading:                      <span class="f-dim">&#9474;</span>', 1100);
+            addLine(el, '  <span class="f-dim">&#9474;</span>    <span class="f-org">&#8594;</span> Write API documentation                 <span class="f-dim">&#9474;</span>', 1200);
+            addLine(el, '  <span class="f-dim">&#9474;</span>    <span class="f-dim">&#8594;</span> Set up monitoring dashboards             <span class="f-dim">&#9474;</span>', 1300);
+            addLine(el, '  <span class="f-dim">&#9474;</span>    <span class="f-dim">&#8594;</span> Review open PRs                         <span class="f-dim">&#9474;</span>', 1400);
+            addLine(el, '  <span class="f-dim">&#9474;</span>                                                <span class="f-dim">&#9474;</span>', 1500);
+            addLine(el, '  <span class="f-dim">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span>', 1600);
+            addLine(el, '', 1700);
+            typePrompt(pr, 'next', 1900, 100, function() {
+                t(function() {
+                    addLine(el, '', 0);
+                    addLine(el, '  <span class="f-yel">?</span> Set afternoon heading:', 100);
+                    addLine(el, '    <span class="f-org">&#10095;</span> API documentation sprint', 300);
+                    addLine(el, '      <span class="f-dim">Monitoring setup</span>', 450);
+                    addLine(el, '      <span class="f-dim">PR review block</span>', 600);
+                    addLine(el, '      <span class="f-dim">Custom...</span>', 750);
+                }, 400);
+            });
+        }
+    },
+    {
+        time: '2:30 PM', clock: '14:30',
+        wp: 3, xp: 260, pct: 54, eta: '~9 days',
+        bearing: '"API docs taking shape"',
+        crew: [
+            { time: '09:12', icon: '&#9875;', desc: 'Auth fix shipped', color: 'f-aqu' },
+            { time: '10:30', icon: '&#129517;', desc: 'Rate limiter', color: 'f-pur' },
+            { time: '14:20', icon: '&#128230;', desc: 'API docs', color: 'f-grn' }
+        ],
+        goalMet: false,
+        feed: function(el, pr) {
+            addLine(el, '<span class="f-aqu">13:45</span>  <span class="f-org">&#128296;</span> <span class="f-org">Git activity detected</span>', 0);
+            addLine(el, '        <span class="f-pur">pro777/api-service</span><span class="f-dim">@</span><span class="f-aqu">feat/api-docs</span>', 150);
+            addLine(el, '        docs: OpenAPI spec for /users endpoints', 300);
+            addLine(el, '        <span class="f-grn">+312</span> <span class="f-red">-0</span> across 4 files', 450);
+            addLine(el, '', 600);
+            addLine(el, '<span class="f-aqu">14:15</span>  <span class="f-org">&#128296;</span> <span class="f-org">Git activity detected</span>', 900);
+            addLine(el, '        <span class="f-pur">pro777/api-service</span><span class="f-dim">@</span><span class="f-aqu">feat/api-docs</span>', 1050);
+            addLine(el, '        docs: add authentication flow examples', 1200);
+            addLine(el, '        <span class="f-grn">+89</span> <span class="f-red">-5</span> across 2 files', 1350);
+            addLine(el, '', 1500);
+            addLine(el, '<span class="f-aqu">14:20</span>  <span class="f-grn">&#128230;</span> Waypoint auto-logged', 1800);
+            addLine(el, '        "API docs &#8212; users + auth" <span class="f-dim">...............</span> <span class="f-org">+95 XP</span>', 2000);
+            addLine(el, '', 2200);
+            addLine(el, '<span class="f-aqu">14:25</span>  <span class="f-pur">&#128064;</span> Review requested', 2500);
+            addLine(el, '        teammate: "Can you check the caching PR?"', 2700);
+            addLine(el, '', 2900);
+            typePrompt(pr, 'review', 3200, 80, function() {
+                t(function() {
+                    addLine(el, '  Opening PR #251 in browser...', 0);
+                }, 400);
+            });
+        }
+    },
+    {
+        time: '4:00 PM', clock: '16:00',
+        wp: 5, xp: 365, pct: 62, eta: '~8 days',
+        bearing: '"API surface well-documented"',
+        crew: [
+            { time: '09:12', icon: '&#9875;', desc: 'Auth fix', color: 'f-aqu' },
+            { time: '10:30', icon: '&#129517;', desc: 'Rate limiter', color: 'f-pur' },
+            { time: '14:20', icon: '&#128230;', desc: 'API docs', color: 'f-grn' },
+            { time: '15:32', icon: '&#128064;', desc: 'PR review', color: 'f-blu' },
+            { time: '16:00', icon: '&#128230;', desc: 'Docs complete', color: 'f-grn' }
+        ],
+        goalMet: true,
+        feed: function(el, pr) {
+            addLine(el, '<span class="f-aqu">15:30</span>  <span class="f-grn">&#9989;</span> PR #251 reviewed & approved', 0);
+            addLine(el, '        "Caching layer looks solid. +1"', 200);
+            addLine(el, '', 400);
+            addLine(el, '<span class="f-aqu">15:32</span>  <span class="f-grn">&#128230;</span> Waypoint logged', 700);
+            addLine(el, '        "Reviewed caching PR #251" <span class="f-dim">............</span> <span class="f-org">+30 XP</span>', 900);
+            addLine(el, '', 1100);
+            addLine(el, '<span class="f-aqu">15:50</span>  <span class="f-org">&#128296;</span> <span class="f-org">Git activity detected</span>', 1400);
+            addLine(el, '        <span class="f-pur">pro777/api-service</span><span class="f-dim">@</span><span class="f-aqu">feat/api-docs</span>', 1550);
+            addLine(el, '        docs: complete rate-limiting section', 1700);
+            addLine(el, '        <span class="f-grn">+156</span> <span class="f-red">-12</span> across 3 files', 1850);
+            addLine(el, '', 2000);
+            addLine(el, '<span class="f-aqu">16:00</span>  <span class="f-grn">&#128230;</span> Waypoint auto-logged', 2300);
+            addLine(el, '        "Rate limiting docs" <span class="f-dim">....................</span> <span class="f-org">+75 XP</span>', 2500);
+            addLine(el, '', 2700);
+            addLine(el, '<span class="f-aqu">16:01</span>  <span class="f-pur">&#129517;</span> Compass reflection', 3000);
+            typePrompt(pr, '"Good progress on docs. API surface is well-documented."', 3300, 28, function() {
+                t(function() {
+                    addLine(el, '', 0);
+                    addLine(el, '<span class="f-aqu">16:05</span>  <span class="f-red">&#127937;</span> <span class="f-yel" style="font-weight:bold;">&#11088; DAILY GOAL MET! &#11088;</span>  All 5 waypoints shipped!', 200);
+                }, 500);
+            });
+        }
+    },
+    {
+        time: '5:15 PM', clock: '17:15',
+        wp: 5, xp: 547, pct: 62, eta: '~8 days',
+        bearing: '"Harbor lights growing brighter"',
+        crew: [
+            { time: '09:12', icon: '&#9875;', desc: 'Auth fix', color: 'f-aqu' },
+            { time: '10:30', icon: '&#129517;', desc: 'Rate limiter', color: 'f-pur' },
+            { time: '14:20', icon: '&#128230;', desc: 'API docs', color: 'f-grn' },
+            { time: '15:32', icon: '&#128064;', desc: 'PR review', color: 'f-blu' },
+            { time: '16:00', icon: '&#128230;', desc: 'Docs final', color: 'f-grn' }
+        ],
+        goalMet: true,
+        feed: function(el, pr) {
+            addLine(el, '<span class="f-aqu">17:00</span>  <span class="f-org">&#127749;</span> <span class="f-org">Day\'s end &#8212; Approaching harbor</span>', 0);
+            addLine(el, '', 300);
+            addLine(el, '  <span class="f-dim">&#9484;&#9472;</span> <span class="f-org">DAILY RECEIPT</span> <span class="f-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>', 600);
+            addLine(el, '  <span class="f-dim">&#9474;</span>                                                <span class="f-dim">&#9474;</span>', 700);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  <span class="f-org">&#9973;</span> Day 12 Complete                            <span class="f-dim">&#9474;</span>', 800);
+            addLine(el, '  <span class="f-dim">&#9474;</span>                                                <span class="f-dim">&#9474;</span>', 900);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Waypoints shipped <span class="f-dim">............</span> <span class="f-grn">5</span>              <span class="f-dim">&#9474;</span>', 1000);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  XP earned <span class="f-dim">...................</span> <span class="f-yel">+365</span>           <span class="f-dim">&#9474;</span>', 1100);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Streak <span class="f-dim">....................</span> 8 days <span class="f-red">&#128293;</span>      <span class="f-dim">&#9474;</span>', 1200);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Multiplier <span class="f-dim">..................</span> <span class="f-org">&times;1.50</span>          <span class="f-dim">&#9474;</span>', 1300);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Total XP (w/ mult) <span class="f-dim">..........</span> <span class="f-yel" style="font-weight:bold;">+547</span>           <span class="f-dim">&#9474;</span>', 1400);
+            addLine(el, '  <span class="f-dim">&#9474;</span>                                                <span class="f-dim">&#9474;</span>', 1500);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Ithaca progress <span class="f-dim">..............</span> <span class="f-org">62%</span>            <span class="f-dim">&#9474;</span>', 1600);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Commits <span class="f-dim">.....................</span> <span class="f-grn">5</span>              <span class="f-dim">&#9474;</span>', 1700);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  PRs reviewed <span class="f-dim">................</span> <span class="f-grn">1</span>              <span class="f-dim">&#9474;</span>', 1800);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  Deploys <span class="f-dim">.....................</span> <span class="f-grn">1</span>              <span class="f-dim">&#9474;</span>', 1900);
+            addLine(el, '  <span class="f-dim">&#9474;</span>                                                <span class="f-dim">&#9474;</span>', 2000);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  <span class="f-dim">"The harbor lights of Ithaca grow</span>          <span class="f-dim">&#9474;</span>', 2100);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  <span class="f-dim"> brighter. Fair winds tomorrow."</span>           <span class="f-dim">&#9474;</span>', 2200);
+            addLine(el, '  <span class="f-dim">&#9474;</span>                                                <span class="f-dim">&#9474;</span>', 2300);
+            addLine(el, '  <span class="f-dim">&#9474;</span>  <span class="f-pur">github.com/pro777</span>                          <span class="f-dim">&#9474;</span>', 2400);
+            addLine(el, '  <span class="f-dim">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span>', 2500);
+            addLine(el, '', 2600);
+            typePrompt(pr, 'dock', 2800, 100, function() {
+                t(function() {
+                    addLine(el, '', 0);
+                    addLine(el, '  Saving voyage log... <span class="f-grn">&#10003;</span>', 300);
+                    addLine(el, '  Updating streak... <span class="f-grn">&#10003;</span>', 700);
+                    addLine(el, '  Syncing to fleet... <span class="f-grn">&#10003;</span>', 1100);
+                    addLine(el, '', 1500);
+                    addLine(el, '  See you tomorrow, sailor. <span class="f-org">&#9875;</span>', 1800);
+                }, 400);
+            });
+        }
+    }
+];
+
+// ============================================
+// ANIMATION HELPERS
+// ============================================
+
+function addLine(el, html, delay) {
+    t(function() {
+        var div = document.createElement('div');
+        div.innerHTML = html || '&nbsp;';
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(2px)';
+        div.style.transition = 'opacity 0.25s, transform 0.25s';
+        el.appendChild(div);
+        // Trigger reflow then animate
+        requestAnimationFrame(function() {
+            div.style.opacity = '1';
+            div.style.transform = 'translateY(0)';
+        });
+        el.scrollTop = el.scrollHeight;
+    }, delay);
+}
+
+function typePrompt(pr, text, delay, speed, callback) {
+    t(function() {
+        pr.innerHTML = '<span class="prompt-prefix">odyssey</span> <span class="prompt-arrow">&#8250;</span> ';
+        var chars = text.split('');
+        chars.forEach(function(ch, i) {
+            t(function() {
+                // Escape HTML entities in the typed text
+                var safe = ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '&' ? '&amp;' : ch;
+                var current = pr.innerHTML.replace(/<span class="cursor-blink">.*?<\/span>/, '');
+                pr.innerHTML = current + '<span class="prompt-text">' + safe + '</span>';
+                if (i === chars.length - 1) {
+                    pr.innerHTML += ' <span class="cursor-blink">&#9608;</span>';
+                    if (callback) t(callback, 300);
+                }
+            }, i * speed);
+        });
+    }, delay);
+}
+
+// XP count-up
+function animateXP(target) {
+    var el = document.getElementById('xpDisplay');
+    var current = parseInt(el.textContent.replace('+', '')) || 0;
+    if (current === target) return;
+    var steps = 30;
+    var increment = (target - current) / steps;
+    for (var i = 0; i <= steps; i++) {
+        (function(val, step) {
+            t(function() {
+                el.textContent = '+' + Math.round(val);
+            }, step * 30 + 500);
+        })(current + (increment * i), i);
+    }
+}
+
+// ============================================
+// RENDER A SLIDE
+// ============================================
+
+var currentSlide = 0;
+var autoAdvanceRunning = false;
+var autoAdvanceTimer = null;
+
+function renderSlide(n) {
+    clearAll();
+    if (n < 0 || n >= slideData.length) return;
+    currentSlide = n;
+    var data = slideData[n];
+
+    // Update clock
+    document.getElementById('clock').textContent = data.clock;
+
+    // Update feed
+    var feedBody = document.getElementById('feedBody');
+    feedBody.innerHTML = '';
+    var promptBar = document.getElementById('promptBar');
+    promptBar.innerHTML = '<span class="prompt-prefix">odyssey</span> <span class="prompt-arrow">&#8250;</span> <span class="cursor-blink">&#9608;</span>';
+
+    // Run feed animation
+    data.feed(feedBody, promptBar);
+
+    // Update sidebar
+    // Ithaca bar
+    t(function() {
+        document.getElementById('ithacaBar').style.width = data.pct + '%';
+        document.getElementById('ithacaPct').textContent = data.pct + '%';
+        document.getElementById('ithacaEta').textContent = data.eta;
+    }, 300);
+
+    // XP
+    animateXP(data.xp);
+
+    // Waypoints
+    for (var i = 0; i < 5; i++) {
+        var dot = document.getElementById('wp' + i);
+        dot.className = 'wp-dot';
+        if (i < data.wp) {
+            (function(d, idx) {
+                t(function() { d.className = 'wp-dot filled'; }, 400 + idx * 200);
+            })(dot, i);
+        } else if (i === data.wp && data.wp < 5) {
+            (function(d) {
+                t(function() { d.className = 'wp-dot active'; }, 400 + data.wp * 200);
+            })(dot);
+        }
+    }
+    document.getElementById('wpCount').textContent = data.wp + ' / 5';
+
+    // Bearing
+    t(function() {
+        document.getElementById('bearing').textContent = data.bearing;
+    }, 600);
+
+    // Crew log
+    var crewLog = document.getElementById('crewLog');
+    crewLog.innerHTML = '';
+    data.crew.forEach(function(entry, idx) {
+        t(function() {
+            var div = document.createElement('div');
+            div.className = 'crew-entry';
+            div.style.animationDelay = (idx * 0.1) + 's';
+            div.innerHTML = '<span class="time">' + entry.time + '</span><span class="icon ' + entry.color + '">' + entry.icon + '</span><span class="desc">' + entry.desc + '</span>';
+            crewLog.appendChild(div);
+        }, 500 + idx * 150);
+    });
+
+    // Goal banner
+    var banner = document.getElementById('goalBanner');
+    if (data.goalMet) {
+        t(function() { banner.style.display = 'block'; }, 800);
+    } else {
+        banner.style.display = 'none';
+    }
+
+    updateDots();
+    updateTimeLabel();
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+
+function updateDots() {
+    var dotsEl = document.getElementById('dots');
+    dotsEl.innerHTML = '';
+    for (var i = 0; i < slideData.length; i++) {
+        var dot = document.createElement('span');
+        dot.className = 'nav-dot';
+        if (i === currentSlide) dot.className += ' active';
+        else if (i < currentSlide) dot.className += ' past';
+        dot.style.cursor = 'pointer';
+        (function(idx) { dot.onclick = function() { goToSlide(idx); }; })(i);
+        dotsEl.appendChild(dot);
+    }
+}
+
+function updateTimeLabel() {
+    document.getElementById('timeLabel').textContent = slideData[currentSlide].time + ' \u00b7 ' + (currentSlide+1) + '/' + slideData.length;
+}
+
+function goToSlide(n) {
+    renderSlide(n);
+    if (autoAdvanceRunning) resetAutoAdvance();
+    if (n === slideData.length - 1 && autoAdvanceRunning) stopAutoAdvance();
+}
+
+function nextSlide() {
+    if (currentSlide < slideData.length - 1) goToSlide(currentSlide + 1);
+}
+function prevSlide() {
+    if (currentSlide > 0) goToSlide(currentSlide - 1);
+}
+
+// Auto-advance (raw setTimeout)
+function resetAutoAdvance() {
+    clearTimeout(autoAdvanceTimer);
+    if (autoAdvanceRunning && currentSlide < slideData.length - 1) {
+        autoAdvanceTimer = setTimeout(nextSlide, 12000);
+    }
+}
+function startAutoAdvance() {
+    autoAdvanceRunning = true;
+    document.getElementById('playBtn').innerHTML = '&#9208; Pause';
+    resetAutoAdvance();
+}
+function stopAutoAdvance() {
+    autoAdvanceRunning = false;
+    clearTimeout(autoAdvanceTimer);
+    document.getElementById('playBtn').innerHTML = '&#9654; Auto (12s)';
+}
+function toggleAutoAdvance() {
+    if (autoAdvanceRunning) stopAutoAdvance();
+    else startAutoAdvance();
+}
+
+// Event listeners
+document.getElementById('prevBtn').addEventListener('click', prevSlide);
+document.getElementById('nextBtn').addEventListener('click', nextSlide);
+document.getElementById('playBtn').addEventListener('click', toggleAutoAdvance);
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft') prevSlide();
+    if (e.key === 'ArrowRight') nextSlide();
+    if (e.key === ' ') { e.preventDefault(); toggleAutoAdvance(); }
+});
+
+// Initialize
+goToSlide(0);
+</script>
+</body>
+</html>

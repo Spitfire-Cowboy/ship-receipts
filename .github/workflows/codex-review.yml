@@ -1,0 +1,30 @@
+name: Codex PR Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+    branches: [develop]
+
+jobs:
+  review:
+    # alcove-private has no self-hosted Codex runner — use GitHub-hosted runner
+    # and trigger CodeRabbit retry so CR produces a fresh review on every push.
+    runs-on: ubuntu-latest
+
+    # Skip draft PRs and forks
+    if: |
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.fork == false
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Retry CodeRabbit review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api \
+            --method POST \
+            "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            -f body="@coderabbitai review"
