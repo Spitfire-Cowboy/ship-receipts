@@ -258,6 +258,23 @@ function runOtsCommand(args: string[]): void {
   }
 }
 
+function runOtsStamp(digestPath: string, network?: string): void {
+  if (!network) {
+    runOtsCommand(["stamp", digestPath]);
+    return;
+  }
+  try {
+    runOtsCommand(["stamp", "--network", network, digestPath]);
+  } catch (error: any) {
+    const message = String(error?.message ?? error);
+    // Some ots client builds do not expose a --network flag.
+    if (!/unknown|unrecognized|invalid option|no such option/i.test(message)) {
+      throw error;
+    }
+    runOtsCommand(["stamp", digestPath]);
+  }
+}
+
 function parseAnchorOtsArgs(args: string[]): { receiptPath: string; outputPath?: string; network?: string } {
   const receiptPath = args[0];
   if (!receiptPath) {
@@ -309,7 +326,7 @@ async function cmdAnchorOts(args: string[]): Promise<number> {
 
   try {
     await writeFile(digestPath, Buffer.from(digestHex, "hex"));
-    runOtsCommand(["stamp", digestPath]);
+    runOtsStamp(digestPath, opts.network);
     const proofBytes = await readFile(proofPath);
     const proofB64 = proofBytes.toString("base64");
 
