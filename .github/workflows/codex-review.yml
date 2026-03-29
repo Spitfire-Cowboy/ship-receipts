@@ -2,7 +2,7 @@ name: Codex PR Review
 
 on:
   pull_request:
-    types: [opened, ready_for_review, synchronize, labeled]
+    types: [opened, reopened, ready_for_review, labeled]
     branches: [main]
 
 jobs:
@@ -21,11 +21,34 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Retry CodeRabbit review
+      - name: Check for existing codex retry comment for this SHA
+        id: dedup
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if ! COMMENTS=$(gh api \
+            "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --paginate \
+            --jq '.[].body'); then
+            echo "failed to enumerate issue comments; refusing to continue" >&2
+            exit 1
+          fi
+
+          if grep -q "cr-codex-sha:$SHA" <<<"$COMMENTS"; then
+            echo "already posted for $SHA — skipping" >&2
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Retry CodeRabbit review
+        if: steps.dedup.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           gh api \
             --method POST \
             "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
-            -f body="@coderabbitai review"
+            -f body="@coderabbitai review <!-- cr-codex-sha:$SHA -->"
