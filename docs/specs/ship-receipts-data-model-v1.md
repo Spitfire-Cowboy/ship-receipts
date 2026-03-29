@@ -278,6 +278,7 @@ File: `.ship-receipts/game-state.json`
 ```
 
 `known_hashes` is a flat array for O(1) duplicate detection (loaded into a Set at runtime).
+Implementations should bound growth: keep the most recent 1000 hashes (FIFO) to align memory usage with `events` truncation behavior.
 
 ---
 

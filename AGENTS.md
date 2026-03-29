@@ -20,17 +20,16 @@ A schema + examples for "ship receipts": provenance for what shipped and why.
 ## Branch Discipline
 
 - `main` — stable, Rowan merges only
-- `develop` — integration target for PRs
 - Agent branches: `codex/<issue>-<slug>`, `rowan/<slug>`, `bld/<slug>`
 - All work must be pushed to origin. No local-only branches.
 
 **Before writing any code**, confirm your branch:
 
 ```bash
-git status   # must show your assigned branch, NOT develop or main
+git status   # must show your assigned branch, NOT main
 ```
 
-If you are on `develop` or `main`, stop and recover first:
+If you are on `main`, stop and recover first:
 
 ```bash
 git stash
@@ -45,7 +44,7 @@ git stash pop
 1. Work in a permanent worktree — never the main checkout.
 2. Do NOT install software, download models, or add dependencies without explicit approval.
 3. Push everything to origin.
-4. Target `develop` for PRs, not `main`.
+4. Target `main` for PRs.
 5. Never close PRs — Rowan reviews and merges.
 6. Only work on the assigned issue. Do not freelance.
 7. Read this file and CLAUDE.md before starting any work.
@@ -56,7 +55,7 @@ git stash pop
 
 - Rowan merges by default.
 - Codex never merges.
-- Never force-push to `develop` or `main`.
+- Never force-push to `main`.
 - Every PR needs `Closes #N` linking it to the issue.
 
 ---
@@ -67,7 +66,7 @@ git stash pop
 - Keep examples clean-room and runnable.
 - If you reference a repo file in markdown, link it.
 - Reference upstream files rather than duplicating content.
-- Run tests before pushing (`npm test` after TS port).
+- Run tests before pushing (`npm test` and `python3 -m pytest tests -v --tb=short` when `tests/` exists).
 
 ---
 
@@ -89,6 +88,17 @@ gh pr edit <PR_NUMBER> --add-label "ready-for-review"
 ```
 
 This is how Rowan knows your work is done. Do NOT merge — Rowan merges.
+
+## Progress Checkpoint
+
+Use this portable issue checkpoint command:
+
+```bash
+gh issue comment <N> --repo "$(gh repo view --json nameWithOwner -q .nameWithOwner)" --body "## Progress checkpoint
+**Done:** <what was completed>
+**Next:** <what remains>
+**Branch:** <branch-name> @ <short-sha>"
+```
 
 ---
 

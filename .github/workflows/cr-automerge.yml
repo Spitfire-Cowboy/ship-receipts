@@ -5,7 +5,7 @@ on:
     types: [submitted]
   pull_request:
     types: [synchronize]
-    branches: [develop]
+    branches: [main]
 
 jobs:
   automerge:
@@ -14,7 +14,7 @@ jobs:
       github.event.review.user.login == 'coderabbitai' &&
       github.event.review.commit_id == github.event.pull_request.head.sha &&
       github.event.pull_request.head.repo.fork == false &&
-      github.event.pull_request.base.ref == github.event.repository.default_branch
+      github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
     permissions:
       contents: write

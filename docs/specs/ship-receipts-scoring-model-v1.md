@@ -66,29 +66,32 @@ def compute_base_score(receipt: dict) -> tuple[int, dict]:
 
         for j, v in enumerate(artifact.get("verify", [])):
             vprefix = f"{prefix}.verify[{j}]"
+            kind = v.get("kind", "")
 
-            if v.get("checksum") and v["checksum"].get("algo") and v["checksum"].get("hash"):
+            if kind == "checksum" and v.get("algo") and v.get("hash"):
                 breakdown[f"{vprefix}.checksum"] = 3
                 score += 3
-
-            if v.get("link"):
+            elif kind == "link" and v.get("url"):
                 breakdown[f"{vprefix}.link"] = 1
                 score += 1
-
-            if v.get("command"):
+            elif kind == "command" and v.get("command"):
                 breakdown[f"{vprefix}.command"] = 2
                 score += 2
-
-            if v.get("attestation"):
+            elif kind == "attestation" and v.get("attestation"):
                 breakdown[f"{vprefix}.attestation"] = 2
                 score += 2
 
         signals = artifact.get("signals", {})
-        for key in ["dependents", "downloads", "stars", "citations"]:
+        for key in ["dependents", "downloads_30d", "stars"]:
             val = signals.get(key)
             if val is not None and val > 0:
                 breakdown[f"{prefix}.signals.{key}"] = 1
                 score += 1
+
+        citations = signals.get("downstream_citations")
+        if citations and len(citations) > 0:
+            breakdown[f"{prefix}.signals.citations"] = 1
+            score += 1
 
     return score, breakdown
 ```
@@ -159,7 +162,7 @@ def streak_multiplier(streak_days: int) -> float:
 ## 6. Integrity Multiplier
 
 ```python
-def integrity_multiplier(receipt: dict, hash_valid: bool) -> float:
+def integrity_multiplier(receipt: dict, *, hash_valid: bool) -> float:
     """
     1.5x if content_hash is valid AND at least one artifact
     has a checksum verification entry.
@@ -169,7 +172,7 @@ def integrity_multiplier(receipt: dict, hash_valid: bool) -> float:
 
     for artifact in receipt.get("artifacts", []):
         for v in artifact.get("verify", []):
-            if v.get("checksum") and v["checksum"].get("algo") and v["checksum"].get("hash"):
+            if v.get("kind") == "checksum" and v.get("algo") and v.get("hash"):
                 return 1.5
 
     return 1.0
@@ -186,14 +189,15 @@ def compute_final_score(
     base_score: int,
     streak_days: int,
     receipt: dict,
+    *,
     hash_valid: bool,
 ) -> int:
     s_mult = streak_multiplier(streak_days)
-    i_mult = integrity_multiplier(receipt, hash_valid)
+    i_mult = integrity_multiplier(receipt, hash_valid=hash_valid)
     return math.floor(base_score * s_mult * i_mult)
 ```
 
-```
+```text
 final_score = floor(base_score × streak_multiplier × integrity_multiplier)
 ```
 
@@ -257,7 +261,7 @@ When a dispute is upheld:
 Each receipt carries an implicit confidence level based on proof depth:
 
 ```python
-def confidence_level(base_score: int, hash_valid: bool) -> str:
+def confidence_level(base_score: int, *, hash_valid: bool) -> str:
     """
     Confidence tiers for display and export.
     These map to how much weight proofofship should give in global aggregation.

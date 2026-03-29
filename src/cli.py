@@ -60,7 +60,7 @@ def _find_repo_root() -> Path:
 
 def _load_receipt(path: str) -> dict:
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except json.JSONDecodeError as e:
         print(f"error: invalid JSON in {path}: {e}", file=sys.stderr)
@@ -79,7 +79,7 @@ def _validate_schema(receipt: dict, schema_path: Path) -> list[str]:
         print("  install with: pip install jsonschema", file=sys.stderr)
         return []
 
-    with open(schema_path) as f:
+    with open(schema_path, encoding="utf-8") as f:
         schema = json.load(f)
 
     validator = Draft202012Validator(schema)
@@ -125,7 +125,7 @@ RECEIPTS_DIR = ".ship-receipts/receipts"
 def _load_config() -> dict:
     p = Path(CONFIG_FILE)
     if p.exists():
-        with open(p) as f:
+        with open(p, encoding="utf-8") as f:
             return json.load(f)
     return {}
 
@@ -205,7 +205,7 @@ def cmd_init(args: argparse.Namespace) -> int:
         output_path = f"{slug}.receipt.json"
 
     try:
-        with open(output_path, "w") as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(receipt, f, indent=2)
             f.write("\n")
     except OSError as e:
@@ -535,7 +535,7 @@ def cmd_export(args: argparse.Namespace) -> int:
     state_path = Path(".ship-receipts/game-state.json")
     game_state = None
     if state_path.exists():
-        with open(state_path) as f:
+        with open(state_path, encoding="utf-8") as f:
             game_state = json.load(f)
 
     try:
@@ -549,7 +549,7 @@ def cmd_export(args: argparse.Namespace) -> int:
         base = Path(args.receipt).stem
         output_path = f"{base}.envelope.json"
 
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(envelope, f, indent=2)
         f.write("\n")
 
@@ -744,18 +744,19 @@ def cmd_watch(args: argparse.Namespace) -> int:
         data = snapshot(".", since=since, state=state)
         _print_space_ship_snapshot(data, state)
 
-        if select:
+        try:
             ready, _, _ = select.select([sys.stdin], [], [], 2.0)
-            if ready:
-                key = sys.stdin.readline().strip().lower()
-                if key == "q":
-                    return 0
-                if key == "y":
-                    state["manual_progress"] = int(state.get("manual_progress", 0)) + 1
-                    save_state(state, ".")
-                    print("Manual Y registered (+1). Keep shipping artifacts; they score more.")
-        else:
+        except (AttributeError, OSError, ValueError):
             time.sleep(2)
+            continue
+        if ready:
+            key = sys.stdin.readline().strip().lower()
+            if key == "q":
+                return 0
+            if key == "y":
+                state["manual_progress"] = int(state.get("manual_progress", 0)) + 1
+                save_state(state, ".")
+                print("Manual Y registered (+1). Keep shipping artifacts; they score more.")
 
 
 def cmd_y(args: argparse.Namespace) -> int:

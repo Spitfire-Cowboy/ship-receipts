@@ -332,19 +332,19 @@ class TestFinalScore:
 
 class TestConfidence:
     def test_none(self):
-        assert confidence_level(0, False) == "none"
+        assert confidence_level(0, hash_valid=False) == "none"
 
     def test_minimal(self):
-        assert confidence_level(3, True) == "minimal"
+        assert confidence_level(3, hash_valid=True) == "minimal"
 
     def test_moderate(self):
-        assert confidence_level(8, True) == "moderate"
+        assert confidence_level(8, hash_valid=True) == "moderate"
 
     def test_strong(self):
-        assert confidence_level(15, True) == "strong"
+        assert confidence_level(15, hash_valid=True) == "strong"
 
     def test_verified(self):
-        assert confidence_level(25, True) == "verified"
+        assert confidence_level(25, hash_valid=True) == "verified"
 
 
 # ---------------------------------------------------------------------------

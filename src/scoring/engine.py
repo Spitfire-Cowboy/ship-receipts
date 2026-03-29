@@ -127,7 +127,7 @@ def streak_multiplier(streak_days: int) -> float:
 # ---------------------------------------------------------------------------
 
 
-def integrity_multiplier(receipt: dict, hash_valid: bool) -> float:
+def integrity_multiplier(receipt: dict, *, hash_valid: bool) -> float:
     """
     1.5x if content_hash is valid AND at least one artifact
     has a checksum verification entry.
@@ -162,13 +162,14 @@ def compute_final_score(
     base_score: int,
     streak_days: int,
     receipt: dict,
+    *,
     hash_valid: bool,
 ) -> int:
     """
     final_score = floor(base_score * streak_mult * integrity_mult)
     """
     s_mult = streak_multiplier(streak_days)
-    i_mult = integrity_multiplier(receipt, hash_valid)
+    i_mult = integrity_multiplier(receipt, hash_valid=hash_valid)
     return math.floor(base_score * s_mult * i_mult)
 
 
@@ -177,7 +178,7 @@ def compute_final_score(
 # ---------------------------------------------------------------------------
 
 
-def confidence_level(base_score: int, hash_valid: bool) -> str:
+def confidence_level(base_score: int, *, hash_valid: bool) -> str:
     """Map base score + hash validity to a confidence tier."""
     if not hash_valid or base_score == 0:
         return "none"

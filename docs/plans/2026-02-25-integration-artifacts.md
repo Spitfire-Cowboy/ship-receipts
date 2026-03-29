@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Create proof-envelope.v1.json Schema
+## Task 1: Create proof-envelope.v1.json Schema
 
 **Files:**
 - Create: `schemas/proof-envelope.v1.json`
@@ -126,7 +126,7 @@ git commit -m "schema: add proof-envelope v1 JSON Schema"
 
 ---
 
-### Task 2: Create receipt-event.v1.json Schema
+## Task 2: Create receipt-event.v1.json Schema
 
 **Files:**
 - Create: `schemas/receipt-event.v1.json`
@@ -253,7 +253,7 @@ git commit -m "schema: add receipt-event v1 JSON Schema"
 
 ---
 
-### Task 3: Create End-to-End Example
+## Task 3: Create End-to-End Example
 
 **Files:**
 - Create: `examples/local-to-global-proof-example.v1.json`
@@ -449,7 +449,8 @@ This example shows a real-shaped receipt going through the full pipeline: local 
     }
   ],
 
-  "score_breakdown_comment": "Base: subject.name(1) + profiles(2) + immutable_ref(2) + ci_url(1) + checksum(3) + link(1) + command(2) + attestation(0) + signals(4: stars,dependents,downloads_30d,as_of counts as non-zero) + slsa_provenance(0, not scored in base) = 16. Wait — let me recount. Actually per the game-loop spec: subject.name=1, profiles=2, immutable_ref=2, ci_url=1, checksum_verify=3, link_verify=1, command_verify=2, signals(stars+dependents+downloads_30d=3 non-zero signals)=3. No meta.created_at or meta.content_hash in v0.1. Total base = 15. With 8-day streak (1.5x) and integrity (has checksum, but no valid content_hash in v0.1 so no integrity bonus) = floor(15 * 1.5) = 22. The local_score_snapshot shows 21/39 which assumes v1 with meta fields. This is illustrative — exact scoring depends on receipt version."
+  "score_breakdown_comment": "Illustrative only: base 15 with a streak multiplier of 1.5x yields final 22.",
+  "_notes": "Full recount: subject.name=1, profiles=2, immutable_ref=2, ci_url=1, checksum_verify=3, link_verify=1, command_verify=2, signals(stars+dependents+downloads_30d=3 non-zero signals)=3. No meta.created_at or meta.content_hash in v0.1. Total base=15. With 8-day streak (1.5x) and no integrity bonus (no valid content_hash in v0.1), floor(15 * 1.5)=22. local_score_snapshot in this example is illustrative."
 }
 ```
 
@@ -504,7 +505,7 @@ git commit -m "examples: add end-to-end local-to-global proof example"
 
 ---
 
-### Task 4: Write Integration Doc
+## Task 4: Write Integration Doc
 
 **Files:**
 - Create: `docs/integration/ship-receipts-to-proofofship-v1.md`
@@ -529,7 +530,7 @@ git commit -m "docs: add ship-receipts to proofofship integration spec v1"
 
 ---
 
-### Task 5: Write Seton Handoff Packet
+## Task 5: Write Seton Handoff Packet
 
 **Files:**
 - Create: `docs/integration/handoff-packet-for-seton-v1.md`
@@ -556,7 +557,7 @@ git commit -m "docs: add Seton handoff packet for game mode UX v1"
 
 ---
 
-### Task 6: Write Stub Export Script
+## Task 6: Write Stub Export Script
 
 **Files:**
 - Create: `scripts/export_proof_envelope.py`
@@ -589,7 +590,7 @@ git commit -m "scripts: add stub proof envelope export tool"
 
 ---
 
-### Task 7: Final Validation Pass
+## Task 7: Final Validation Pass
 
 **Step 1: Run all schema validations end-to-end**
 

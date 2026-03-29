@@ -84,13 +84,11 @@ def validate_receipt(receipt: dict, schema_path: str) -> list[str]:
         print("  Install with: pip install jsonschema", file=sys.stderr)
         return []
 
-    with open(schema_path) as f:
+    with open(schema_path, encoding="utf-8") as f:
         schema = json.load(f)
 
     validator = Draft202012Validator(schema)
-    errors = []
-    for error in validator.iter_errors(receipt):
-        errors.append(f"{error.json_path}: {error.message}")
+    errors = [f"{error.json_path}: {error.message}" for error in validator.iter_errors(receipt)]
     return errors
 
 
@@ -170,7 +168,7 @@ def main():
 
     # 1. Read receipt
     try:
-        with open(args.receipt) as f:
+        with open(args.receipt, encoding="utf-8") as f:
             receipt = json.load(f)
     except json.JSONDecodeError as e:
         print(f"error: E_PARSE — Invalid JSON: {e}", file=sys.stderr)
@@ -239,7 +237,7 @@ def main():
     # 10. Output
     output_json = json.dumps(envelope, indent=2, ensure_ascii=False)
     if args.output:
-        with open(args.output, "w") as f:
+        with open(args.output, "w", encoding="utf-8") as f:
             f.write(output_json)
             f.write("\n")
         print(f"Envelope written to {args.output}", file=sys.stderr)

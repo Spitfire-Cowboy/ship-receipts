@@ -223,7 +223,7 @@ class GameState:
         # 4. Final score
         current_streak = self.state["streak"]["current"]
         final_score = compute_final_score(
-            base_score, current_streak, receipt, hash_valid and has_hash
+            base_score, current_streak, receipt, hash_valid=hash_valid and has_hash
         )
 
         # 5. Streak update
@@ -247,7 +247,7 @@ class GameState:
             "score": final_score,
             "date": today,
             "dispute_status": "none",
-            "confidence": confidence_level(base_score, hash_valid and has_hash),
+            "confidence": confidence_level(base_score, hash_valid=hash_valid and has_hash),
             "breakdown": {
                 "base": base_score,
                 "streak_multiplier": streak_multiplier(current_streak),

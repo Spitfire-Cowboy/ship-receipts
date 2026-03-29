@@ -106,15 +106,14 @@ Multipliers reward sustained quality. They apply to **base score** of each recei
 
 | Multiplier | Condition | Value |
 |------------|-----------|-------|
+| Streak 2+ days | 2 consecutive qualifying days | 1.10x |
 | Streak 3+ days | 3 consecutive qualifying days | 1.25x |
-| Streak 7+ days | 7 consecutive qualifying days | 1.5x |
-| Streak 14+ days | 14 consecutive qualifying days | 1.75x |
-| Streak 30+ days | 30 consecutive qualifying days | 2.0x |
+| Streak 5+ days | 5 consecutive qualifying days (cap) | 1.5x |
 | Integrity bonus | content_hash valid + at least one checksum verify | 1.5x |
 
 Multipliers **stack multiplicatively**.
 
-Example: 7-day streak (1.5x) + integrity bonus (1.5x) = 2.25x total multiplier.
+Example: 5-day streak (1.5x cap) + integrity bonus (1.5x) = 2.25x total multiplier.
 
 ---
 
@@ -135,7 +134,7 @@ Penalties are **not punitive** (no negative scores). The worst outcome is 0 and 
 
 ## Score Formula
 
-```
+```text
 final_score = floor(base_score * streak_multiplier * integrity_multiplier)
 ```
 
@@ -185,7 +184,7 @@ Events are the atomic state transitions in the game loop.
 
 ## State Transitions
 
-```
+```text
 [No State] --submit--> [Validating]
 [Validating] --schema_fail--> [Rejected]
 [Validating] --schema_pass--> [Scoring]
@@ -236,13 +235,13 @@ Events array is append-only. In v1, it can be truncated after 1000 entries (keep
 
 `ship-receipts score <file>` outputs:
 
-```
+```text
 Receipt: my-project-receipt.json
 Subject: BuilderName
 Status:  ACCEPTED
 
   Base Score:          12
-  Streak Multiplier:   1.5x (7-day streak)
+  Streak Multiplier:   1.5x (5-day streak cap)
   Integrity Bonus:     1.0x
   ─────────────────────
   Final Score:         18
@@ -258,7 +257,7 @@ Status:  ACCEPTED
                           ──
     Base Total            12
 
-  Streak: 7 days (next multiplier at 14 days: 1.75x)
+  Streak: 5 days (max multiplier reached: 1.5x)
   Total Score: 160 (12 receipts)
 ```
 

@@ -69,46 +69,47 @@ def main() -> int:
 
     # --- Step 2: Score locally ---
     print("\n[Step 2] Score locally")
-    tmpdir = tempfile.mkdtemp()
-    state = GameState(root_dir=tmpdir)
-    result = state.score_receipt(receipt)
-    state.save()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        state = GameState(root_dir=tmpdir)
+        result = state.score_receipt(receipt)
+        state.save()
 
-    check("Status is ACCEPTED", result["status"] == "ACCEPTED", f"got {result['status']}")
-    # name(1)+profiles(2)+created_at(1)+content_hash(3)+immutable(2)+ci_url(1)+checksum(3)+command(2)+stars(1)+downloads(1) = 17
-    check("Base score is 17", result["base_score"] == 17, f"got {result['base_score']}")
-    check("Final score is 25 (17 × 1.0 × 1.5)", result["score"] == 25, f"got {result['score']}")
-    check("Qualifies for streak", result["qualifies_for_streak"] is True)
-    check("Confidence is strong", result["confidence"] == "strong", f"got {result['confidence']}")
+        check("Status is ACCEPTED", result["status"] == "ACCEPTED", f"got {result['status']}")
+        # name(1)+profiles(2)+created_at(1)+content_hash(3)+immutable(2)+ci_url(1)+checksum(3)+command(2)+stars(1)+downloads(1) = 17
+        check("Base score is 17", result["base_score"] == 17, f"got {result['base_score']}")
+        check("Final score is 25 (17 × 1.0 × 1.5)", result["score"] == 25, f"got {result['score']}")
+        check("Qualifies for streak", result["qualifies_for_streak"] is True)
+        check("Confidence is strong", result["confidence"] == "strong", f"got {result['confidence']}")
 
-    # --- Step 3: Duplicate rejected ---
-    print("\n[Step 3] Duplicate detection")
-    dup_result = state.score_receipt(receipt)
-    check("Duplicate status", dup_result["status"] == "DUPLICATE", f"got {dup_result['status']}")
-    check("Duplicate score is 0", dup_result["score"] == 0)
+        # --- Step 3: Duplicate rejected ---
+        print("\n[Step 3] Duplicate detection")
+        dup_result = state.score_receipt(receipt)
+        check("Duplicate status", dup_result["status"] == "DUPLICATE", f"got {dup_result['status']}")
+        check("Duplicate score is 0", dup_result["score"] == 0)
 
-    # --- Step 4: Tamper detection ---
-    print("\n[Step 4] Tamper detection")
-    tampered = json.loads(json.dumps(receipt))
-    tampered["artifacts"][0]["name"] = "TAMPERED"
-    # Need fresh state to avoid duplicate detection of original
-    state2 = GameState(root_dir=tempfile.mkdtemp())
-    tamper_result = state2.score_receipt(tampered)
-    check("Tampered receipt REJECTED", tamper_result["status"] == "REJECTED", f"got {tamper_result['status']}")
+        # --- Step 4: Tamper detection ---
+        print("\n[Step 4] Tamper detection")
+        tampered = json.loads(json.dumps(receipt))
+        tampered["artifacts"][0]["name"] = "TAMPERED"
+        # Need fresh state to avoid duplicate detection of original
+        with tempfile.TemporaryDirectory() as tmpdir2:
+            state2 = GameState(root_dir=tmpdir2)
+            tamper_result = state2.score_receipt(tampered)
+        check("Tampered receipt REJECTED", tamper_result["status"] == "REJECTED", f"got {tamper_result['status']}")
 
-    # --- Step 5: Export envelope ---
-    print("\n[Step 5] Export proof envelope")
-    envelope = export_proof_envelope(receipt, state.state)
-    check("Envelope version is 1.0", envelope["envelope_version"] == "1.0")
-    check("Content hash starts with sha256:", envelope["content_hash"].startswith("sha256:"))
-    check("Actor is smoketest", envelope["actor"]["github_username"] == "smoketest")
-    check("Receipt embedded", envelope["receipt"] == receipt)
-    check("Local snapshot present", "local_score_snapshot" in envelope)
+        # --- Step 5: Export envelope ---
+        print("\n[Step 5] Export proof envelope")
+        envelope = export_proof_envelope(receipt, state.state)
+        check("Envelope version is 1.0", envelope["envelope_version"] == "1.0")
+        check("Content hash starts with sha256:", envelope["content_hash"].startswith("sha256:"))
+        check("Actor is smoketest", envelope["actor"]["github_username"] == "smoketest")
+        check("Receipt embedded", envelope["receipt"] == receipt)
+        check("Local snapshot present", "local_score_snapshot" in envelope)
 
-    if "local_score_snapshot" in envelope:
-        snap = envelope["local_score_snapshot"]
-        check("Snapshot base_score is 17", snap["base_score"] == 17, f"got {snap['base_score']}")
-        check("Snapshot final_score is 25", snap["final_score"] == 25, f"got {snap['final_score']}")
+        if "local_score_snapshot" in envelope:
+            snap = envelope["local_score_snapshot"]
+            check("Snapshot base_score is 17", snap["base_score"] == 17, f"got {snap['base_score']}")
+            check("Snapshot final_score is 25", snap["final_score"] == 25, f"got {snap['final_score']}")
 
     # --- Summary ---
     print("\n" + "=" * 60)
