@@ -1,6 +1,6 @@
 # Ship Receipts
 
-Ship Receipts is a TypeScript CLI and schema for producing machine-readable records of shipped work.
+Ship Receipts is a CLI and schema for producing machine-readable records of shipped work.
 
 Each receipt answers four things:
 - what was shipped
@@ -14,6 +14,14 @@ Homepage: [shipreceipts.com](https://shipreceipts.com)
 
 ```bash
 npx ship-receipts --help
+```
+
+For local development in this repo:
+
+```bash
+npm install
+npm run build
+npm test
 ```
 
 ## Quick start
@@ -73,12 +81,16 @@ verify those envelope claims directly.
 external `ots` CLI to anchor and verify OpenTimestamps proofs for receipt
 digests.
 
+Schema `$id` URLs are stable identifiers and do not require a live verifier API.
+
 ## Repo layout
 
 - schemas: [`schema/`](schema/) and [`schemas/`](schemas/)
 - examples: [`examples/`](examples/)
 - TypeScript CLI source: [`src-ts/`](src-ts/)
+- test suite: [`tests-ts/`](tests-ts/)
+- docs index: [`docs/`](docs/)
 
 ## License
 
-Apache-2.0. See [`LICENSE`](LICENSE).
+Proprietary. See [`LICENSE`](LICENSE).

@@ -1,0 +1,31 @@
+name: Codex PR Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, synchronize, labeled]
+    branches: [main]
+
+jobs:
+  review:
+    # Use GitHub-hosted runner and trigger CodeRabbit retry
+    # so a fresh review is produced on each PR event.
+    runs-on: ubuntu-latest
+
+    # Skip draft PRs and forks
+    if: |
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.fork == false &&
+      contains(github.event.pull_request.labels.*.name, 'run-coderabbit')
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Retry CodeRabbit review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api \
+            --method POST \
+            "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            -f body="@coderabbitai review"
