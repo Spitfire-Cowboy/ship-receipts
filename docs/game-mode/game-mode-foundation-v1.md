@@ -144,7 +144,7 @@ All rewards tie to verified proof depth. No exceptions.
 | Reward | Source | Rule |
 |--------|--------|------|
 | Base points | Proof primitive presence | Deterministic from receipt content |
-| Streak multiplier | Consecutive qualifying days | 3d→1.25x, 7d→1.5x, 14d→1.75x, 30d→2.0x |
+| Streak multiplier | Consecutive qualifying days | 2d→1.10x, 3d→1.25x, 5d+→1.50x (cap) |
 | Integrity bonus | Valid hash + checksum verify | 1.5x multiplier |
 | Status badges | Event stream | 8 states from DRAFT to VERIFIED |
 | Gold shield | Integrity verified receipt | Visual prestige indicator |

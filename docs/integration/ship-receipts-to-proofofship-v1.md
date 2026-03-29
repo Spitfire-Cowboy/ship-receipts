@@ -37,7 +37,7 @@ a local score snapshot for UX purposes.
 | `subject.name` | `actor.display_name` | Yes | Direct copy |
 | `subject.profiles[kind=github].url` | `actor.github_username` | Yes | Extract username from URL |
 | `subject.profiles[*].url` | `actor.profile_urls` | No | All profile URLs |
-| `meta.content_hash` | `content_hash` | Yes | Must be valid `sha256:<hex>` |
+| _(generated at export)_ | `content_hash` | Yes | Computed from canonical receipt JSON; if `meta.content_hash` exists it must match |
 | _(generated)_ | `envelope_id` | Yes | ULID at export time |
 | _(generated)_ | `submitted_at` | Yes | ISO 8601 at export |
 | _(entire receipt)_ | `receipt` | Yes | Verbatim copy, no transformation |
@@ -72,8 +72,8 @@ Multiple envelopes can reference the same receipt (e.g., resubmission after reje
 |---|---|---|---|
 | 1 | Receipt is valid JSON | `E_PARSE` | Abort |
 | 2 | Receipt passes schema validation | `E_SCHEMA` | Abort |
-| 3 | `meta.content_hash` present | `E_HASH_MISSING` | Abort |
-| 4 | `meta.content_hash` matches computed | `E_HASH_INVALID` | Abort |
+| 3 | Compute canonical content hash from receipt | _(none)_ | Required for envelope |
+| 4 | If `meta.content_hash` exists, it must match computed hash | `E_HASH_INVALID` | Abort |
 | 5 | `subject.name` non-empty | `E_SUBJECT` | Abort |
 | 6 | GitHub profile extractable from profiles | `E_NO_GITHUB` | Abort |
 | 7 | At least 1 artifact with URL | `E_NO_ARTIFACT` | Abort |

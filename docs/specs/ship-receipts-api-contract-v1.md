@@ -177,7 +177,7 @@ Subject: BuilderName
 Status:  ACCEPTED
 
   Base Score:          12
-  Streak Multiplier:   1.5x (7-day streak)
+  Streak Multiplier:   1.5x (5-day streak)
   Integrity Bonus:     1.0x
   ---
   Final Score:         18
@@ -193,7 +193,7 @@ Status:  ACCEPTED
                           --
     Base Total            12
 
-  Streak: 7 days (next: 1.75x at 14 days)
+  Streak: 5 days (max tier reached)
   Total Score: 160 (12 receipts)
 ```
 
@@ -214,13 +214,13 @@ Status:  ACCEPTED
     "subject.profiles": 2,
     "meta.created_at": 1,
     "meta.content_hash": 3,
-    "artifacts[0].immutable_ref": 2,
-    "artifacts[0].ci_url": 1,
-    "artifacts[0].verify[0].checksum": 3
+    "artifact[0].immutable_ref": 2,
+    "artifact[0].ci_url": 1,
+    "artifact[0].verify[0].checksum": 3
   },
   "streak": {
-    "current": 7,
-    "next_multiplier_at": 14
+    "current": 5,
+    "next_multiplier_at": null
   },
   "total": {
     "score": 160,

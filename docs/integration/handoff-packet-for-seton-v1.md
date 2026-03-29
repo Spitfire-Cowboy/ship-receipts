@@ -11,12 +11,12 @@
 
 Everything you need to build ship-receipts game mode UX. No guessing required.
 
-Ship-receipts is **single player mode** — fun, easy, local. The builder creates
+Ship-receipts is **single-player mode** — fun, easy, local. The builder creates
 receipts, scores them, builds streaks. Think RPG character sheet meets GitHub
 contribution graph.
 
 Proofofship is **MMO mode** — public scoreboard, canonical reputation ledger,
-opt-in. That comes later. For now, focus on single player.
+opt-in. That comes later. For now, focus on single-player.
 
 ---
 

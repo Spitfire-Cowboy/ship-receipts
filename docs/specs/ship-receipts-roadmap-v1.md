@@ -180,17 +180,17 @@ Not providing time estimates per instructions. Phases are sequential. Each phase
 
 ### After Phase 0 Review
 
-5. Pick CLI language and framework (send rationale to Campion for review)
-6. Implement `validate` command
-7. Implement `init` command
-8. Wire up CI to run tests on PR
+1. Pick CLI language and framework (send rationale to Campion for review)
+2. Implement `validate` command
+3. Implement `init` command
+4. Wire up CI to run tests on PR
 
 ### After Phase 1 Review
 
-9. Implement scoring function (pure function, no state)
-10. Implement state file management
-11. Implement `score` command
-12. Implement `streak` command
+1. Implement scoring function (pure function, no state)
+2. Implement state file management
+3. Implement `score` command
+4. Implement `streak` command
 
 ### Standing Request
 

@@ -35,13 +35,13 @@ ship-receipts monk end
 
 - Prompts for a reflection note
 - Generates a single `reflection` receipt (kind: `other`, with monk metadata)
-- The reflection receipt is scored normally (it is the "ship" at the end of the learning period)
-- Streak resumes from where it was
+- The reflection receipt is scored normally and counts as the required "one scored receipt between monk periods"
+- The reflection receipt also resumes and can advance the frozen streak (if it clears the qualifying threshold)
 
 ### Structural limits
 - Cannot stack monk periods continuously: must have at least one scored receipt between monk periods
 - Maximum monk period: 30 days (prevents permanent monk mode as a scoring avoidance strategy)
-- If monk period expires without explicitly closing, it auto-closes with a minimal reflection
+- If monk period expires without explicitly closing, it auto-closes with a minimal reflection receipt; that receipt follows the same scoring/re-entry/streak rules above
 
 ---
 

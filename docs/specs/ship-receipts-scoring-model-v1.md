@@ -142,10 +142,9 @@ Rationale (R10): Setting a minimum threshold prevents low-effort receipts from c
 
 ```python
 STREAK_TIERS = [
-    (30, 2.00),
-    (14, 1.75),
-    (7,  1.50),
+    (5,  1.50),
     (3,  1.25),
+    (2,  1.10),
 ]
 
 def streak_multiplier(streak_days: int) -> float:

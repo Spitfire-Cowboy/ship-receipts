@@ -83,15 +83,14 @@ Badges are visual indicators for the game UI. Not persisted — derived from gam
 
 | Multiplier | Condition | Factor |
 |------------|-----------|--------|
+| Streak 2+ | 2 consecutive qualifying days | 1.10x |
 | Streak 3+ | 3 consecutive qualifying days | 1.25x |
-| Streak 7+ | 7 consecutive qualifying days | 1.50x |
-| Streak 14+ | 14 consecutive qualifying days | 1.75x |
-| Streak 30+ | 30 consecutive qualifying days | 2.00x |
+| Streak 5+ | 5+ consecutive qualifying days | 1.50x |
 | Integrity | Valid hash + checksum verify | 1.50x |
 
 ### Formula
 
-```
+```text
 final_score = floor(base_score × streak_multiplier × integrity_multiplier)
 ```
 
@@ -146,8 +145,6 @@ final_score = floor(base_score × streak_multiplier × integrity_multiplier)
 
 ### Not Yet Built
 
-- CLI commands (`ship-receipts score`, `ship-receipts validate`, `ship-receipts export`)
-- Schema validation via jsonschema (available in export script only)
 - Proof envelope submission to proofofship API (manual curl for now)
 - Multi-user state (currently single-user per state file)
 

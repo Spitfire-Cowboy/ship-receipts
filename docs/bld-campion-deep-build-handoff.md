@@ -62,18 +62,18 @@ If deterministic replay is needed for prompt-only runs:
 
 Canonical host project path:
 
-- `/Users/johnmalone/Projects/ship-receipts`
+- `<repo-root>`
 
 If running in a containerized build worker, mount as:
 
-- Host: `/Users/johnmalone/Projects/ship-receipts`
+- Host: `<repo-root>`
 - Container: `/workspace/ship-receipts`
 
 Example:
 
 ```bash
 docker run --rm -it \
-  -v /Users/johnmalone/Projects/ship-receipts:/workspace/ship-receipts \
+  -v "<repo-root>:/workspace/ship-receipts" \
   -w /workspace/ship-receipts \
   node:22 bash
 ```
