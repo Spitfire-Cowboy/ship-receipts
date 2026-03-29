@@ -35,7 +35,7 @@ if [[ "\${cmd}" == "stamp" ]]; then
   if [[ -z "\${target}" ]]; then
     exit 2
   fi
-  printf '%s' "fake-ots-proof" > "\${target}.ots"
+  cat "\${target}" > "\${target}.ots"
   exit 0
 fi
 if [[ "\${cmd}" == "verify" ]]; then
@@ -51,6 +51,7 @@ if [[ "\${cmd}" == "verify" ]]; then
   if [[ ! -s "\${target}" ]]; then
     exit 2
   fi
+  cmp -s "\${proof}" "\${target}" || exit 2
   exit 0
 fi
 exit 2
@@ -176,6 +177,9 @@ describe("ts cli", () => {
       expect(typeof anchored.anchors[0].digest_hex).toBe("string");
       expect(anchored.anchors[0].digest_hex.length).toBe(64);
       expect(typeof anchored.anchors[0].ots_proof).toBe("string");
+      expect(Buffer.from(anchored.anchors[0].ots_proof, "base64")).toEqual(
+        Buffer.from(anchored.anchors[0].digest_hex, "hex"),
+      );
 
       const verifyCode = await main(["verify", "ots", outFile]);
       expect(verifyCode).toBe(0);

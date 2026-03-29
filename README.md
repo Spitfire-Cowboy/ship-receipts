@@ -66,8 +66,12 @@ ship-receipts verify ots receipt.json
 
 ## Trust boundary
 
-`ship-receipts` creates proof envelopes. It does not verify them.
-Verification lives in separate tooling (`proofofship`).
+`ship-receipts` creates proof envelopes for use with `proofofship` and does not
+verify those envelope claims directly.
+
+`anchor ots` and `verify ots` are the one scoped exception: they call the
+external `ots` CLI to anchor and verify OpenTimestamps proofs for receipt
+digests.
 
 ## Repo layout
 

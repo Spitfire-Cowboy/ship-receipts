@@ -258,13 +258,13 @@ function runOtsCommand(args: string[]): void {
   }
 }
 
-function parseAnchorOtsArgs(args: string[]): { receiptPath: string; outputPath?: string; network: string } {
+function parseAnchorOtsArgs(args: string[]): { receiptPath: string; outputPath?: string; network?: string } {
   const receiptPath = args[0];
   if (!receiptPath) {
     throw new Error("missing receipt path");
   }
   let outputPath: string | undefined;
-  let network = "bitcoin-mainnet";
+  let network: string | undefined;
   for (let i = 1; i < args.length; i += 1) {
     const arg = args[i];
     if (arg === "--output" || arg === "-o") {
@@ -308,7 +308,7 @@ async function cmdAnchorOts(args: string[]): Promise<number> {
   const proofPath = `${digestPath}.ots`;
 
   try {
-    await writeFile(digestPath, `${digestHex}\n`, "utf8");
+    await writeFile(digestPath, Buffer.from(digestHex, "hex"));
     runOtsCommand(["stamp", digestPath]);
     const proofBytes = await readFile(proofPath);
     const proofB64 = proofBytes.toString("base64");
@@ -318,20 +318,25 @@ async function cmdAnchorOts(args: string[]): Promise<number> {
 
     const currentAnchors = Array.isArray(anchored.anchors) ? anchored.anchors : [];
     const filtered = currentAnchors.filter((anchor: any) => anchor?.kind !== "opentimestamps");
-    filtered.push({
+    const anchor: Record<string, any> = {
       kind: "opentimestamps",
       digest_alg: "sha256",
       digest_hex: digestHex,
       ots_proof: proofB64,
-      network: opts.network,
-    });
+    };
+    if (opts.network) {
+      anchor.network = opts.network;
+    }
+    filtered.push(anchor);
     anchored.anchors = filtered;
 
     const outPath = resolve(opts.outputPath ?? opts.receiptPath);
     await writeFile(outPath, `${JSON.stringify(anchored, null, 2)}\n`, "utf8");
     console.log(`Anchored with OpenTimestamps: ${outPath}`);
     console.log(`  Digest: ${digestHex}`);
-    console.log(`  Network: ${opts.network}`);
+    if (opts.network) {
+      console.log(`  Network: ${opts.network}`);
+    }
     return 0;
   } finally {
     await rm(scratchDir, { recursive: true, force: true });
@@ -381,7 +386,7 @@ async function cmdVerifyOts(args: string[]): Promise<number> {
   const proofPath = join(scratchDir, `${digestHex}.sha256.ots`);
 
   try {
-    await writeFile(digestPath, `${digestHex}\n`, "utf8");
+    await writeFile(digestPath, Buffer.from(digestHex, "hex"));
     await writeFile(proofPath, Buffer.from(anchor.ots_proof, "base64"));
     runOtsCommand(["verify", proofPath, "-f", digestPath]);
     console.log(`OTS verification passed for ${resolvedPath}`);
