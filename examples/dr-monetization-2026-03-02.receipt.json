@@ -96,7 +96,7 @@
     {
       "kind": "repo",
       "name": "Codex TS Port PR #36 Review",
-      "url": "https://github.com/Pro777/ship-receipts/pull/36",
+      "url": "https://github.com/Spitfire-Cowboy/ship-receipts/pull/36",
       "immutable_ref": "codex/issues-27-28-33-34-pickup@65cd53f777a57298ba5618d07973985f3fa5b1a1",
       "verify": [
         {
@@ -110,18 +110,18 @@
     {
       "kind": "repo",
       "name": "Ship-Receipts Issues Filed (2 new)",
-      "url": "https://github.com/Pro777/ship-receipts",
+      "url": "https://github.com/Spitfire-Cowboy/ship-receipts",
       "immutable_ref": "main@65cd53f777a57298ba5618d07973985f3fa5b1a1",
       "verify": [
         {
           "kind": "link",
-          "url": "https://github.com/Pro777/ship-receipts/issues/37",
+          "url": "https://github.com/Spitfire-Cowboy/ship-receipts/issues/37",
           "source": "github",
           "observed_at": "2026-03-02T08:00:00Z"
         },
         {
           "kind": "link",
-          "url": "https://github.com/Pro777/ship-receipts/issues/38",
+          "url": "https://github.com/Spitfire-Cowboy/ship-receipts/issues/38",
           "source": "github",
           "observed_at": "2026-03-02T08:00:00Z"
         }

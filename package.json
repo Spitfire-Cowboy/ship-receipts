@@ -17,6 +17,7 @@
   "scripts": {
     "build": "tsup src-ts/cli.ts --format esm --dts --clean",
     "test": "vitest run",
+    "presmoke:ts": "npm run build",
     "smoke:ts": "node --enable-source-maps scripts-ts/smoke.ts",
     "prepublishOnly": "npm run build && npm run test"
   },
