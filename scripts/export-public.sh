@@ -34,10 +34,18 @@ EOF
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --out)
+      if [[ -z "${2:-}" ]]; then
+        echo "error: --out requires a value" >&2
+        exit 2
+      fi
       OUT_DIR="${2:-}"
       shift 2
       ;;
     --manifest)
+      if [[ -z "${2:-}" ]]; then
+        echo "error: --manifest requires a value" >&2
+        exit 2
+      fi
       MANIFEST="${2:-}"
       shift 2
       ;;

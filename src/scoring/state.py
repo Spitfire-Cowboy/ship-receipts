@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import date, datetime, timezone
+import tempfile
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from .engine import (
@@ -35,8 +36,11 @@ class GameState:
 
     def _load(self) -> dict:
         if self.state_path.exists():
-            with open(self.state_path) as f:
-                return json.load(f)
+            try:
+                with open(self.state_path, encoding="utf-8") as f:
+                    return json.load(f)
+            except json.JSONDecodeError:
+                return self._default_state()
         return self._default_state()
 
     def _default_state(self) -> dict:
@@ -60,9 +64,25 @@ class GameState:
 
     def save(self) -> None:
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.state_path, "w") as f:
-            json.dump(self.state, f, indent=2)
-            f.write("\n")
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                dir=self.state_path.parent,
+                prefix=f"{self.state_path.name}.",
+                suffix=".tmp",
+                delete=False,
+                encoding="utf-8",
+            ) as f:
+                json.dump(self.state, f, indent=2)
+                f.write("\n")
+                f.flush()
+                os.fsync(f.fileno())
+                tmp_path = Path(f.name)
+            os.replace(tmp_path, self.state_path)
+        finally:
+            if tmp_path and tmp_path.exists():
+                tmp_path.unlink(missing_ok=True)
 
     # ------------------------------------------------------------------
     # Duplicate check
@@ -115,7 +135,13 @@ class GameState:
                 streak["current"] = 1
                 streak["last_qualifying_date"] = today
                 streak["streak_start_date"] = today
-            # delta == 0 handled above; delta < 0 shouldn't happen
+            elif delta < 0:
+                self._emit_event("streak.clock_skew", {
+                    "last_qualifying_date": last_date,
+                    "today": today,
+                    "delta_days": delta,
+                })
+                return
 
         if streak["current"] > streak.get("longest", 0):
             streak["longest"] = streak["current"]
@@ -128,7 +154,7 @@ class GameState:
         events = self.state.setdefault("events", [])
         events.append({
             "type": event_type,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "payload": payload,
         })
         # Trim to max events
@@ -146,7 +172,7 @@ class GameState:
         Returns a result dict with: status, score, breakdown, etc.
         Does NOT save state — caller must call .save() after.
         """
-        today = date.today().isoformat()
+        today = datetime.now(UTC).date().isoformat()
 
         # 1. Content hash validation
         hash_valid = validate_content_hash(receipt)

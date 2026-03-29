@@ -65,7 +65,10 @@ def ingest_git_events(repo_root: str | Path = ".", since: str | None = None) -> 
             range_spec,
         ).splitlines()
     except subprocess.CalledProcessError:
-        return [], _git(repo, "rev-parse", "HEAD")
+        try:
+            return [], _git(repo, "rev-parse", "HEAD")
+        except subprocess.CalledProcessError:
+            return [], ""
 
     events: list[dict] = []
     for line in lines:

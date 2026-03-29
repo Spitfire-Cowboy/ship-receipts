@@ -21,8 +21,11 @@ import argparse
 import json
 import os
 import re
+import select
+import shlex
 import subprocess
 import sys
+import time
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -33,6 +36,7 @@ from .scoring.engine import (
     streak_multiplier,
 )
 from .scoring.hash_validator import compute_content_hash, validate_content_hash
+from .scoring.ship_game import apply_checkpoint, load_state, save_state, snapshot
 from .scoring.badges import BADGE_COLORS, derive_badge
 from .scoring.state import GameState
 from .envelope.export import export_proof_envelope
@@ -266,9 +270,18 @@ def cmd_goal(args: argparse.Namespace) -> int:
 def _run_llm_hook(receipt: dict, goal: str | None, hook_cmd: str) -> None:
     """Run the configured LLM hook and print its response."""
     receipt_json = json.dumps(receipt, indent=2)
-    cmd = hook_cmd.replace("{goal}", goal or "").replace("{receipt_json}", receipt_json)
+    cmd = hook_cmd.replace("{goal}", goal or "").replace("{receipt_json}", "")
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=60)
+        argv = shlex.split(cmd)
+        if not argv:
+            return
+        result = subprocess.run(
+            argv,
+            input=receipt_json,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
         response = result.stdout.strip()
         if response:
             print()
@@ -350,7 +363,6 @@ def cmd_validate(args: argparse.Namespace) -> int:
         else:
             print("Hash:    SKIP (use --strict to verify)")
 
-        base, _ = compute_base_score(receipt)
         proof_desc = ", ".join(f"{v} {k}" for k, v in proof_counts.items()) if proof_counts else "none"
         print(f"Artifacts: {num_artifacts}")
         print(f"Proofs:  {total_proofs} ({proof_desc})")

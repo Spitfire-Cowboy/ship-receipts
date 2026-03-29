@@ -15,7 +15,8 @@ import math
 MINIMUM_QUALIFYING_SCORE = 6
 
 # Streak tiers capped at 5 days (1.5x). No penalty for breaking streak.
-# Philosophy: encourages daily shipping without punishing weekends or rest.
+# Intentional v1 policy: this implementation uses a lower, anti-burnout cap
+# than earlier draft specs. Keep docs in sync with this runtime table.
 STREAK_TIERS: list[tuple[int, float]] = [
     (5, 1.50),
     (3, 1.25),

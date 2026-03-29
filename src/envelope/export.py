@@ -42,7 +42,7 @@ def _generate_ulid() -> str:
 # ---------------------------------------------------------------------------
 
 _GITHUB_URL_RE = re.compile(
-    r"https?://github\.com/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})"
+    r"https?://github\.com/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})(?:/)?$"
 )
 
 
@@ -59,7 +59,7 @@ def extract_actor(receipt: dict) -> dict:
         if url:
             profile_urls.append(url)
         if p.get("kind") == "github":
-            match = _GITHUB_URL_RE.match(url)
+            match = _GITHUB_URL_RE.fullmatch(url.strip())
             if match:
                 github_username = match.group(1)
 
@@ -97,6 +97,9 @@ def export_proof_envelope(
     """
     actor = extract_actor(receipt)
     content_hash = compute_content_hash(receipt)
+    claimed_hash = receipt.get("meta", {}).get("content_hash")
+    if claimed_hash and claimed_hash != content_hash:
+        raise ValueError("Receipt meta.content_hash does not match computed hash")
 
     envelope: dict = {
         "envelope_version": "1.0",

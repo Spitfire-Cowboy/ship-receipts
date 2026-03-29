@@ -124,6 +124,21 @@ def build_envelope(receipt: dict, github_username: str, content_hash: str) -> di
     }
 
 
+def is_duplicate_content_hash(content_hash: str, root_dir: str = ".") -> bool:
+    """Check local game history for duplicate receipt hashes."""
+    state_path = os.path.join(root_dir, ".ship-receipts", "game-state.json")
+    if not os.path.exists(state_path):
+        return False
+    try:
+        with open(state_path, encoding="utf-8") as f:
+            state = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return False
+
+    history = state.get("history", [])
+    return any(entry.get("receipt_hash") == content_hash for entry in history if isinstance(entry, dict))
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Export a ship-receipt as a proof envelope for proofofship."
@@ -134,6 +149,11 @@ def main():
         "--schema-dir",
         default=None,
         help="Directory containing schema files (default: auto-detect from script location)",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Allow export even if content hash already exists in local history",
     )
     args = parser.parse_args()
 
@@ -195,10 +215,18 @@ def main():
     content_hash = compute_content_hash(receipt)
     print(f"PASS: Content hash computed: {content_hash[:30]}...", file=sys.stderr)
 
-    # 7. Build envelope
+    # 7. Duplicate check (warning path can be overridden with --force)
+    if is_duplicate_content_hash(content_hash):
+        if not args.force:
+            print("error: W_DUPLICATE — content hash already exists in local history", file=sys.stderr)
+            print("  hint: re-run with --force to export anyway", file=sys.stderr)
+            sys.exit(1)
+        print("WARNING: duplicate content hash detected; continuing because --force was provided", file=sys.stderr)
+
+    # 8. Build envelope
     envelope = build_envelope(receipt, github_username, content_hash)
 
-    # 8. Validate envelope against schema
+    # 9. Validate envelope against schema
     if os.path.exists(envelope_schema_path):
         errors = validate_receipt(envelope, envelope_schema_path)
         if errors:
@@ -208,7 +236,7 @@ def main():
             sys.exit(1)
         print("PASS: Envelope validates against proof-envelope.v1.json", file=sys.stderr)
 
-    # 9. Output
+    # 10. Output
     output_json = json.dumps(envelope, indent=2, ensure_ascii=False)
     if args.output:
         with open(args.output, "w") as f:
