@@ -55,6 +55,15 @@ VALID
 
 `create` is an alias of `init`, and `verify` is an alias of `validate`.
 
+Anchor a receipt digest with OpenTimestamps:
+
+```bash
+ship-receipts anchor ots receipt.json
+ship-receipts verify ots receipt.json
+```
+
+`anchor ots` and `verify ots` require the `ots` CLI (`pip3 install opentimestamps-client`).
+
 ## Trust boundary
 
 `ship-receipts` creates proof envelopes. It does not verify them.

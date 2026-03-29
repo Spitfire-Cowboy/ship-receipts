@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtemp, readFile, writeFile, copyFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, writeFile, copyFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { main } from "../src-ts/cli.js";
@@ -22,6 +22,41 @@ function sampleReceipt(): Record<string, any> {
       },
     ],
   };
+}
+
+async function installFakeOts(binDir: string): Promise<void> {
+  await mkdir(binDir, { recursive: true });
+  const scriptPath = join(binDir, "ots");
+  const script = `#!/usr/bin/env bash
+set -euo pipefail
+cmd="\${1:-}"
+if [[ "\${cmd}" == "stamp" ]]; then
+  target="\${2:-}"
+  if [[ -z "\${target}" ]]; then
+    exit 2
+  fi
+  printf '%s' "fake-ots-proof" > "\${target}.ots"
+  exit 0
+fi
+if [[ "\${cmd}" == "verify" ]]; then
+  proof="\${2:-}"
+  flag="\${3:-}"
+  target="\${4:-}"
+  if [[ "\${flag}" != "-f" ]]; then
+    exit 2
+  fi
+  if [[ ! -s "\${proof}" ]]; then
+    exit 2
+  fi
+  if [[ ! -s "\${target}" ]]; then
+    exit 2
+  fi
+  exit 0
+fi
+exit 2
+`;
+  await writeFile(scriptPath, script, "utf8");
+  await chmod(scriptPath, 0o755);
 }
 
 describe("ts cli", () => {
@@ -79,6 +114,97 @@ describe("ts cli", () => {
     await writeFile(file, JSON.stringify(bad, null, 2), "utf8");
     const code = await main(["validate", file]);
     expect(code).toBe(1);
+  });
+
+  it("validate passes with a well-formed opentimestamps anchor", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-cli-"));
+    const receipt = sampleReceipt();
+    receipt.version = "1.2";
+    receipt.anchors = [
+      {
+        kind: "opentimestamps",
+        digest_alg: "sha256",
+        digest_hex: "a".repeat(64),
+        ots_proof: Buffer.from("fake-ots-proof").toString("base64"),
+        network: "bitcoin-mainnet",
+      },
+    ];
+    const file = join(root, "anchored.json");
+    await writeFile(file, JSON.stringify(receipt, null, 2), "utf8");
+    const code = await main(["validate", file]);
+    expect(code).toBe(0);
+  });
+
+  it("validate fails on malformed opentimestamps anchor", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-cli-"));
+    const receipt = sampleReceipt();
+    receipt.version = "1.2";
+    receipt.anchors = [
+      {
+        kind: "opentimestamps",
+        digest_alg: "sha256",
+        digest_hex: "not-a-digest",
+        ots_proof: "%%%not-base64%%%",
+      },
+    ];
+    const file = join(root, "anchored-bad.json");
+    await writeFile(file, JSON.stringify(receipt, null, 2), "utf8");
+    const code = await main(["validate", file]);
+    expect(code).toBe(1);
+  });
+
+  it("anchor ots then verify ots succeeds with the ots client", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-ots-"));
+    const fakeBin = join(root, "bin");
+    await installFakeOts(fakeBin);
+
+    const receiptFile = join(root, "receipt.json");
+    const outFile = join(root, "receipt.anchored.json");
+    await writeFile(receiptFile, JSON.stringify(sampleReceipt(), null, 2), "utf8");
+
+    const previousPath = process.env.PATH;
+    process.env.PATH = `${fakeBin}:${previousPath ?? ""}`;
+    try {
+      const anchorCode = await main(["anchor", "ots", receiptFile, "--output", outFile]);
+      expect(anchorCode).toBe(0);
+
+      const anchored = JSON.parse(await readFile(outFile, "utf8"));
+      expect(anchored.version).toBe("1.2");
+      expect(Array.isArray(anchored.anchors)).toBe(true);
+      expect(anchored.anchors[0].kind).toBe("opentimestamps");
+      expect(anchored.anchors[0].digest_alg).toBe("sha256");
+      expect(typeof anchored.anchors[0].digest_hex).toBe("string");
+      expect(anchored.anchors[0].digest_hex.length).toBe(64);
+      expect(typeof anchored.anchors[0].ots_proof).toBe("string");
+
+      const verifyCode = await main(["verify", "ots", outFile]);
+      expect(verifyCode).toBe(0);
+    } finally {
+      if (previousPath === undefined) {
+        delete process.env.PATH;
+      } else {
+        process.env.PATH = previousPath;
+      }
+    }
+  });
+
+  it("anchor ots fails cleanly when ots client is unavailable", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-ots-"));
+    const receiptFile = join(root, "receipt.json");
+    await writeFile(receiptFile, JSON.stringify(sampleReceipt(), null, 2), "utf8");
+
+    const previousPath = process.env.PATH;
+    process.env.PATH = root;
+    try {
+      const code = await main(["anchor", "ots", receiptFile]);
+      expect(code).toBe(1);
+    } finally {
+      if (previousPath === undefined) {
+        delete process.env.PATH;
+      } else {
+        process.env.PATH = previousPath;
+      }
+    }
   });
 
   it("score creates local state", async () => {
