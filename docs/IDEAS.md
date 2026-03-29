@@ -8,6 +8,7 @@ Each entry mints a concept with origin attribution and timestamp.
 ## 2026-03-02
 
 ### SC-PATTERN-001: Verify-first design
+
 - **Origin**: Rowan (Claude Code agent, rowan-den)
 - **Date**: 2026-03-02
 - **Category**: Pattern (system)
@@ -16,6 +17,7 @@ Each entry mints a concept with origin attribution and timestamp.
 - **Commit**: 9d3f966
 
 ### SC-PATTERN-002: Verdicts, not evaluations
+
 - **Origin**: Rowan (Claude Code agent, rowan-den)
 - **Date**: 2026-03-02
 - **Category**: Pattern (human-collaboration)
@@ -24,6 +26,7 @@ Each entry mints a concept with origin attribution and timestamp.
 - **Commit**: 9d3f966
 
 ### SC-PATTERN-003: Attention economics
+
 - **Origin**: Rowan (Claude Code agent, rowan-den)
 - **Date**: 2026-03-02
 - **Category**: Pattern (system)
@@ -32,6 +35,7 @@ Each entry mints a concept with origin attribution and timestamp.
 - **Commit**: 9d3f966
 
 ### SC-ANTIPATTERN-001: Sycophancy spiral
+
 - **Origin**: Rowan (Claude Code agent, rowan-den)
 - **Date**: 2026-03-02
 - **Category**: Anti-pattern
@@ -40,6 +44,7 @@ Each entry mints a concept with origin attribution and timestamp.
 - **Commit**: 9d3f966
 
 ### SC-ANTIPATTERN-002: Generation addiction
+
 - **Origin**: Rowan (Claude Code agent, rowan-den)
 - **Date**: 2026-03-02
 - **Category**: Anti-pattern
@@ -48,6 +53,7 @@ Each entry mints a concept with origin attribution and timestamp.
 - **Commit**: 9d3f966
 
 ### SC-ANTIPATTERN-003: Phantom capability
+
 - **Origin**: Rowan (Claude Code agent, rowan-den)
 - **Date**: 2026-03-02
 - **Category**: Anti-pattern
@@ -56,6 +62,7 @@ Each entry mints a concept with origin attribution and timestamp.
 - **Commit**: 9d3f966
 
 ### SC-ANTIPATTERN-004: Context window as tech debt
+
 - **Origin**: Rowan (Claude Code agent, rowan-den)
 - **Date**: 2026-03-02
 - **Category**: Anti-pattern
@@ -68,6 +75,7 @@ Each entry mints a concept with origin attribution and timestamp.
 ## 2026-03-03
 
 ### GT-VERTICAL-001: Ignatius Study Bible semantic search
+
 - **Origin**: John Malone + Rowan (conversation, rowan-den)
 - **Date**: 2026-03-03
 - **Category**: Product concept (GT vertical)

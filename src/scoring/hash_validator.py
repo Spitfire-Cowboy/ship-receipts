@@ -21,11 +21,15 @@ def compute_content_hash(receipt: dict) -> str:
 
     Returns "sha256:<hex>".
     """
+    if not isinstance(receipt, dict):
+        raise TypeError("receipt must be a dict")
+
     receipt_copy = json.loads(json.dumps(receipt))
-    meta = receipt_copy.get("meta", {})
-    meta.pop("content_hash", None)
-    if meta == {}:
-        receipt_copy.pop("meta", None)
+    meta = receipt_copy.get("meta")
+    if isinstance(meta, dict):
+        meta.pop("content_hash", None)
+        if not meta:
+            receipt_copy.pop("meta", None)
 
     canonical = canonical_json(receipt_copy)
     digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -43,10 +47,21 @@ def validate_content_hash(receipt: dict) -> bool:
     Returns True if:
     - content_hash is absent (nothing to validate)
     """
-    claimed = receipt.get("meta", {}).get("content_hash", "")
+    if not isinstance(receipt, dict):
+        return False
+
+    meta = receipt.get("meta")
+    if meta is None:
+        return True  # No hash to validate
+    if not isinstance(meta, dict):
+        return False
+
+    claimed = meta.get("content_hash", "")
     if not claimed:
         return True  # No hash to validate
 
+    if not isinstance(claimed, str):
+        return False
     if not claimed.startswith("sha256:"):
         return False
 

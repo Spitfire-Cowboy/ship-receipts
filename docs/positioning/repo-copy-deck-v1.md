@@ -104,4 +104,4 @@ Every claim in public copy should trace to a repo artifact. Current mapping:
 | "Proof envelope for proofofship" | `schemas/proof-envelope.v1.json`, `docs/specs/local-to-global-proof-envelope-v1.md` |
 | "Deterministic scoring" | Scoring model spec, section 7: "same inputs -> same output" |
 | "Streaks and multipliers" | Game loop spec, sections on streaks and multipliers |
-| "MIT license" | `LICENSE` |
+| "Proprietary license" | `LICENSE` |

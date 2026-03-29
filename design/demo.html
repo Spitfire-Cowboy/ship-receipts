@@ -199,8 +199,8 @@
     <div class="footer">
       <div class="footer-hint">space / → to advance  ·  ← to go back</div>
       <div class="nav-btns">
-        <button id="prevBtn" disabled>← Back</button>
-        <button id="nextBtn">Next →</button>
+        <button id="prevBtn" type="button" disabled>← Back</button>
+        <button id="nextBtn" type="button">Next →</button>
       </div>
       <div class="scene-counter" id="sceneCounter">Scene 1 of 7</div>
     </div>
@@ -500,6 +500,13 @@
     document.getElementById('nextBtn').addEventListener('click', () => showScene(current + 1));
 
     document.addEventListener('keydown', e => {
+      const el = e.target;
+      const tag = el?.tagName?.toLowerCase();
+      const isInteractive =
+        (tag && ['input', 'textarea', 'select', 'button', 'a'].includes(tag)) ||
+        el?.isContentEditable;
+      if (isInteractive) return;
+
       if (e.key === 'ArrowRight' || e.key === ' ') {
         e.preventDefault();
         if (current < total - 1) showScene(current + 1);

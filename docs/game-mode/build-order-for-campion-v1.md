@@ -23,6 +23,7 @@
 **Inputs:** A parsed receipt JSON object.
 
 **Outputs:**
+
 ```json
 {
   "base_score": 19,
@@ -74,6 +75,7 @@
 **What:** Read and write `.ship-receipts/game-state.json`.
 
 **Schema:**
+
 ```json
 {
   "version": "1",
@@ -142,6 +144,7 @@
 - `streak.broken`
 
 **Event schema:**
+
 ```json
 {
   "event_id": "evt_01JMFG...",
@@ -212,6 +215,7 @@
 - `party list` — show party roster
 
 **Character snapshot:**
+
 ```json
 {
   "username": "torvalds",
@@ -278,7 +282,7 @@
 
 ## Dependency Graph
 
-```
+```text
 Slice 1 (Score Calculator) ──┐
 Slice 2 (Hash Validator)  ───┤
 Slice 3 (State File)      ───┼──→ Slice 6 (Wire Together)

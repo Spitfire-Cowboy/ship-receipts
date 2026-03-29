@@ -4,11 +4,6 @@ Tests for the badge renderer.
 Spec: docs/game-mode/build-order-for-campion-v1.md (Slice 7)
 """
 
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
 from src.scoring.badges import BADGE_COLORS, BADGE_STATES, derive_badge
 
 
@@ -77,3 +72,11 @@ class TestDeriveBadge:
             {"type": "envelope.rejected", "payload": {"content_hash": "h"}},
         ]
         assert derive_badge(events, "h") == "REJECTED"
+
+    def test_malformed_events_are_skipped(self):
+        events = [
+            "bad-entry",
+            {"type": "receipt.created", "payload": "not-a-dict"},
+            {"type": "receipt.validated", "payload": {"content_hash": "h"}},
+        ]
+        assert derive_badge(events, "h") == "VALID"

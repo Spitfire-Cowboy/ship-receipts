@@ -11,6 +11,7 @@ include:
   - vitest.config.ts
   - src-ts/**
   - dist/**
+  # Keep both for legacy/public schema directory naming.
   - schema/**
   - schemas/**
   - examples/**

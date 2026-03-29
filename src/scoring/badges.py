@@ -39,7 +39,11 @@ def derive_badge(events: list[dict], content_hash: str) -> str:
     for the first matching event. Returns "UNKNOWN" if no match.
     """
     for event in reversed(events):
+        if not isinstance(event, dict):
+            continue
         payload = event.get("payload", {})
+        if not isinstance(payload, dict):
+            continue
         event_hash = payload.get("receipt_hash") or payload.get("content_hash")
         if event_hash == content_hash:
             event_type = event.get("type", "")

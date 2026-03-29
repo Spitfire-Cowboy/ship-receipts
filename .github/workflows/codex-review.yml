@@ -7,8 +7,8 @@ on:
 
 jobs:
   review:
-    # alcove-private has no self-hosted Codex runner — use GitHub-hosted runner
-    # and trigger CodeRabbit retry so CR produces a fresh review on every push.
+    # Use GitHub-hosted runner and trigger CodeRabbit retry
+    # so a fresh review is produced on each PR event.
     runs-on: ubuntu-latest
 
     # Skip draft PRs and forks

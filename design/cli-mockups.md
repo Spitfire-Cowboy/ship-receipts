@@ -1,6 +1,7 @@
 # Design Ideas & Inspiration
 
 ## What this demo should show
+
 Walk through a daily session of using ship-receipts — a CLI game where you create verifiable receipts for work you've shipped. See pitch.md for the full concept.
 
 The daily loop: declare a goal → do work → create a receipt → score it → get a compass reflection from an LLM → track your streak. It's the hero's journey in microcosm.
@@ -16,12 +17,15 @@ The daily loop: declare a goal → do work → create a receipt → score it →
 **Kenney audio** — optional sound effects. Confirmation chime on score, glass shatter on streak break, retro chiptune jingle on milestone. CC0.
 
 ## What makes this different from a normal CLI tool
+
 It's a game. It should feel like a game. The scoring should feel satisfying. The streak should create tension. The compass reflection should feel like a wise friend. The terminal should feel alive, not like a log dump.
 
 ## Reference file
+
 gt-demo-reference.html is a Golden Thread demo built in this same style (browser-framed interactive walkthrough). Use the same single-file HTML approach but frame it as a terminal window instead of a browser window.
 
 ## Key scenes to include
+
 1. Welcome/title
 2. Declaring your Ithaca (goal)
 3. Creating a receipt (init)

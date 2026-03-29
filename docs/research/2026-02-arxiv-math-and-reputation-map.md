@@ -27,12 +27,14 @@ Queried ~2.95M arXiv paper metadata (ChromaDB, `nomic-embed-text` embeddings) ac
 
 ### Category 2: Trust Scoring Under Adversarial Behavior
 
+Year column uses the first arXiv submission year for each paper.
+
 | ID | Title | arXiv | Year | Applicability |
 |----|-------|-------|------|---------------|
 | R7 | The Influence of Trust Score on Cooperative Behavior | 1910.09895 | 2019 | Validates receipt-level (not aggregate-only) scoring |
 | R8 | Decentralized Trust Management: Risk Analysis & Aggregation | 1909.11355 | 2019 | Sparse-to-global trust aggregation via transitive trust |
 | R9 | Strategic Evaluation: Subjects, Evaluators, and Society | 2310.03655 | 2023 | Framework for gaming vs honest improvement distinction |
-| R10 | Optimal Rating Design under Moral Hazard | 2008.09529 | 2026 | Scoring function robustness to strategic manipulation |
+| R10 | Optimal Rating Design under Moral Hazard | 2008.09529 | 2020 | Scoring function robustness to strategic manipulation |
 
 ### Category 3: Anomaly / Fraud Detection
 

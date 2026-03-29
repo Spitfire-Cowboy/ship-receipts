@@ -323,9 +323,9 @@
 
             <div class="controls-center">
                 <div class="buttons">
-                    <button id="prevBtn">← 上一页</button>
-                    <button id="playPauseBtn">⏸ 暂停</button>
-                    <button id="nextBtn">下一页 →</button>
+                    <button type="button" id="prevBtn">← 上一页</button>
+                    <button type="button" id="playPauseBtn">⏸ 暂停</button>
+                    <button type="button" id="nextBtn">下一页 →</button>
                 </div>
 
                 <div class="dots" id="dotsContainer"></div>
@@ -981,7 +981,7 @@
             timerFill.classList.remove('animating');
 
             if (isAutoAdvancing && currentSlide < totalSlides - 1) {
-                setTimeout(() => {
+                t(() => {
                     timerFill.classList.add('animating');
                 }, 10);
 

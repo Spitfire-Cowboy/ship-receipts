@@ -8,11 +8,6 @@ import json
 import math
 import pathlib
 import pytest
-import sys
-import os
-
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.scoring.engine import (
     compute_base_score,
@@ -190,6 +185,14 @@ class TestContentHash:
         """No hash = nothing to validate = passes."""
         receipt = _minimal_receipt()
         assert validate_content_hash(receipt) is True
+
+    def test_malformed_meta_fails_gracefully(self):
+        receipt = _minimal_receipt(meta=[])
+        assert validate_content_hash(receipt) is False
+
+    def test_non_string_content_hash_fails_gracefully(self):
+        receipt = _minimal_receipt(meta={"content_hash": 123})
+        assert validate_content_hash(receipt) is False
 
     def test_non_sha256_prefix_fails(self):
         receipt = _minimal_receipt(meta={"content_hash": "md5:abc123"})

@@ -17,7 +17,7 @@ This plan prioritizes repeatability, low-risk migration, and simple governance.
 
 ## 2) Target Operating Model
 
-## Private repo (`ship-receipts-private`)
+### Private repo (`ship-receipts-private`)
 
 Owns all authoring and decision-making.
 
@@ -27,7 +27,7 @@ Includes:
 - Tooling/scripts for export
 - CI for private checks and public-export generation
 
-## Public repo (`ship-receipts`)
+### Public repo (`ship-receipts`)
 
 Receives generated export only.
 
@@ -46,26 +46,26 @@ Excludes:
 
 ## 3) Migration Plan (Phased)
 
-## Phase A — Prepare and freeze
+### Phase A — Prepare and freeze
 
 1. Announce migration window and temporary merge freeze.
 2. Ensure current `develop` is green and tagged for rollback (`pre-split-YYYYMMDD`).
 3. Create branch in current repo: `chore/repo-split-private-public`.
 
-## Phase B — Rename current repo to private
+### Phase B — Rename current repo to private
 
 1. Rename GitHub repository from `ship-receipts` → `ship-receipts-private`.
 2. Keep visibility private.
 3. Update local remote URLs to new private slug.
 4. Confirm CI/webhooks/secrets still bound correctly.
 
-## Phase C — Create new public repo shell
+### Phase C — Create new public repo shell
 
 1. Create new repository named `ship-receipts` (public).
 2. Add branch protections and required checks.
 3. Add SECURITY/CODEOWNERS and minimal governance files.
 
-## Phase D — Define export contract
+### Phase D — Define export contract
 
 1. Add `export/public-allowlist.yml` in private repo describing exactly what can ship.
 2. Add `scripts/export-public.sh` (or Python equivalent) to produce deterministic public tree.
@@ -74,7 +74,7 @@ Excludes:
    - Blocked patterns are detected (tokens, internal domains, private notes)
    - Required public metadata is missing
 
-## Phase E — First export + publish
+### Phase E — First export + publish
 
 1. Generate export from private repo.
 2. Review diff manually (2-person check recommended).
@@ -83,7 +83,7 @@ Excludes:
    - private: `private-split-baseline-1`
    - public: `public-split-baseline-1`
 
-## Phase F — Ongoing workflow
+### Phase F — Ongoing workflow
 
 1. All work lands in private repo.
 2. Public releases are generated (manual trigger initially).

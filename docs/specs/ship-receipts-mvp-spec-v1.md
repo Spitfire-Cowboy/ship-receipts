@@ -199,14 +199,14 @@ This section is the explicit handoff packet for Seton/Cowork.
 
 ### Needs Campion Review Before Building
 
-4. **State file format** — The local game state file format needs a schema. Draft it, send for review.
+1. **State file format** — The local game state file format needs a schema. Draft it, send for review.
 
-5. **CLI framework choice** — Pick a CLI framework (Node.js with Commander, Rust with Clap, Go with Cobra). Send rationale for review.
+2. **CLI framework choice** — Pick a CLI framework (Node.js with Commander, Rust with Clap, Go with Cobra). Send rationale for review.
 
 ### Blocked Until Proofofship
 
-6. **Global game loop** — Scoring across builders requires proofofship.com. Not in scope.
+1. **Global game loop** — Scoring across builders requires proofofship.com. Not in scope.
 
-7. **Receipt hosting** — Where receipts live publicly. Proofofship concern.
+2. **Receipt hosting** — Where receipts live publicly. Proofofship concern.
 
-8. **Identity verification** — Proving `subject.name` is who they say. Proofofship concern.
+3. **Identity verification** — Proving `subject.name` is who they say. Proofofship concern.

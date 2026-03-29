@@ -15,6 +15,7 @@ import json
 import urllib.request
 import urllib.error
 from datetime import date
+from urllib.parse import quote
 
 
 def fetch_github_profile(username: str) -> dict | None:
@@ -22,7 +23,7 @@ def fetch_github_profile(username: str) -> dict | None:
     Fetch a public GitHub profile. Returns dict on success, None on 404.
     Raises urllib.error.URLError on network errors.
     """
-    url = f"https://api.github.com/users/{username}"
+    url = f"https://api.github.com/users/{quote(username, safe='')}"
     req = urllib.request.Request(url, headers={"User-Agent": "ship-receipts-cli/1.0"})
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:

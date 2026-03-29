@@ -8,7 +8,7 @@
 
 ## Navigation hierarchy
 
-```
+```text
 README.md                          ← primary entry point (GitHub landing page)
 ├── docs/README.md                 ← secondary entry point (docs index)
 │   ├── concepts.md                ← "what is this" for people who want more than the README

@@ -106,7 +106,7 @@ These ideas are interesting but will derail shipping if we chase them now. Parki
 These are future-lane items. They don't block any current work.
 
 1. **Serial event spec.** Define the JSON-lines schema for game events over USB serial. Minimum viable: `{"event": "receipt_validated", "streak": 5, "xp": 120}`. Add to `schemas/` when ready.
-2. **Arduino blink sketch.** A <50 line Arduino sketch that reads serial JSON and blinks an LED on `receipt_validated`. Proves the bridge concept end-to-end. Target: works in 15 minutes from clone.
+2. **Arduino blink sketch.** A <50-line Arduino sketch that reads serial JSON and blinks an LED on `receipt_validated`. Proves the bridge concept end-to-end. Target: works in 15 minutes from clone.
 3. **Old-phone dashboard.** A single-file HTML page that connects to `localhost` via WebSocket and renders streak + XP. Deploy by opening the file on any phone browser pointed at the dev machine.
 
 ---

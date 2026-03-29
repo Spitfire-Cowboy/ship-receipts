@@ -1,5 +1,6 @@
 """Allow running as `python -m src`."""
-from .cli import main
 import sys
+
+from .cli import main
 
 sys.exit(main())

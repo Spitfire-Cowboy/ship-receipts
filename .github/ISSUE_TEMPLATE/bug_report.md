@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a reproducible problem
+about: Report a reproducible bug
 labels: bug
 ---
 
@@ -11,6 +11,7 @@ labels: bug
 ## Steps to reproduce
 
 ## Environment
+
 - OS:
 - Version/commit:
 

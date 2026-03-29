@@ -74,6 +74,6 @@ These mechanics are explicitly out of scope, forever:
 
 Ship-receipts will never knowingly introduce a gamification feature that is inherently anti-human thriving. Any proposed mechanic that cannot survive scrutiny against this document will be rejected.
 
-If you see a mechanic that violates this commitment, [file an issue](https://github.com/Pro777/ship-receipts-private/issues).
+If you see a mechanic that violates this commitment, [file an issue](https://github.com/Spitfire-Cowboy/ship-receipts/issues).
 
 Closes #57

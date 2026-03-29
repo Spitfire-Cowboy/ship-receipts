@@ -22,7 +22,8 @@ The name is intentional. You are navigating without GPS. You know how long you'v
 ## Mechanics
 
 ### Enabling Dead Reckoning mode
-```
+
+```text
 ship-receipts dr enable --cadence weekly
 ```
 
@@ -31,6 +32,7 @@ Cadence options: `daily`, `weekly`, `biweekly`, `monthly`.
 The cadence defines the boundary interval. Each interval is a checkpoint.
 
 ### Drift scoring
+
 At each cadence boundary:
 - **0 drift** (shipped this interval): full score, compass fires SHIP
 - **1 interval drift** (shipped last interval, not this one): partial score, compass fires ITERATE
@@ -39,6 +41,7 @@ At each cadence boundary:
 Drift is measured in intervals, not days. A weekly cadence developer who ships every other week has 1 interval drift — not 7 days of streak break.
 
 ### Evidence decay
+
 Receipts have a half-life proportional to the cadence:
 - Daily cadence: receipts at full weight for 2 days, then decay
 - Weekly: full weight for 2 weeks, then decay
@@ -47,8 +50,9 @@ Receipts have a half-life proportional to the cadence:
 Decay does not delete receipts. It reduces their contribution to the running score. A ship from 6 months ago still counts — it just counts for less.
 
 ### Compass at cadence boundary
+
 At each cadence boundary, the compass fires automatically (if configured):
-```
+```text
 SHIP     — you shipped this interval. Keep sailing.
 ITERATE  — you shipped last interval but not this one. Drift check.
 ABANDON  — no ship in 2+ intervals. Is this project still alive?

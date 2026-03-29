@@ -5,7 +5,7 @@ Notes for Claude (or any AI pair) working in this repo.
 ## Constraints
 - Keep the schema simple and readable.
 - Prefer additive changes to avoid breaking downstream tooling.
-- Keep examples clean-room.
+- Keep examples clean-room (no copied proprietary text/assets).
 
 ## What to optimize for
 - Clarity of the schema.

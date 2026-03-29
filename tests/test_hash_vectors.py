@@ -8,12 +8,7 @@ behaviour, these tests will catch the regression.
 Spec: docs/specs/ship-receipts-scoring-model-v1.md §3
 """
 
-import sys
-import os
-
 import pytest
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.scoring.hash_validator import compute_content_hash, validate_content_hash
 

@@ -7,11 +7,13 @@
 ## What is shipped on `develop`
 
 ### ship-receipts
+
 - Local scoring pipeline is implemented (score engine, hash validation, state persistence, streak logic, envelope export).
 - Integration smoke path is green (`16/16` checks).
 - Campion handoff packet v2 is published with stable/provisional boundaries and module map.
 
 ### proofofship
+
 - Envelope validator, append-only ledger store, and reputation aggregator are implemented.
 - Ingest smoke path is green (`18/18` checks).
 - Campion handoff packet v2 is published with formula, states, and anti-gaming control inventory.
@@ -43,5 +45,6 @@ From roadmap/specs, the phase-5 items not yet complete are:
    - Emit daily anti-gaming report artifact for operator review.
 
 ## Bridge note
+
 - `ship-receipts` can stay mostly unchanged for phase-5 completion; primary work is in `proofofship` ingest/verification/monitoring.
 - Keep trust boundary unchanged: never trust `local_score_snapshot`; continue independent global verification.

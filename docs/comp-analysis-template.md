@@ -4,7 +4,7 @@ Prompt for Claude Cowork (mount the full repo). Have Claude Code fill in the bra
 
 ---
 
-```
+```text
 I'm working on a project and I want you to act as a rigorous strategic advisor. Your job is to tell me what I HAVEN'T considered — not to validate what I've already done. Be thorough. Take your time. I'd rather you spend 5 minutes thinking than give me a fast, shallow answer.
 
 You have the full codebase mounted. Explore the repo structure, README, and any docs/ directory for product context, domain model, architecture, and implementation status before responding.

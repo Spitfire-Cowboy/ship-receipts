@@ -11,7 +11,7 @@ All 10 build order slices implemented and tested. Ready for public repo creation
 
 ## Test Summary
 
-- **124 tests passing** (0 failures, 0 skipped)
+- **105 tests passing** (0 failures, 0 skipped)
 - Test execution: ~1.2s
 
 | Module | Tests | Status |
@@ -23,7 +23,7 @@ All 10 build order slices implemented and tested. Ready for public repo creation
 | test_scoring.py | 36 | PASS |
 | test_ship_game.py | 2 | PASS |
 | test_state.py | 12 | PASS |
-| **Total** | **124** | **PASS** |
+| **Total** | **105** | **PASS** |
 
 ## Build Order Slice Completion
 

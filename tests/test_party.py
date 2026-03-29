@@ -4,11 +4,6 @@ Tests for party mode.
 Spec: docs/game-mode/build-order-for-campion-v1.md (Slice 8)
 """
 
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
 from src.party import (
     add_to_party,
     create_snapshot,

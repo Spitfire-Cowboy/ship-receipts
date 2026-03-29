@@ -1,10 +1,10 @@
-## What
+# What
 
-- 
+- _Describe the change._
 
 ## Why
 
-- 
+- _Why this change is needed._
 
 ## Verification
 
@@ -14,4 +14,4 @@
 
 ## Notes
 
-- 
+- _Additional context._

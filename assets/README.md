@@ -1,8 +1,10 @@
 # Assets (local-only)
 
-This directory is for **local-only** assets that should not be committed to git (licensed bundles, large downloads, etc.).
+This directory is for **local-only** assets that should not be committed to git
+(licensed bundles, large downloads, etc.).
 
 ## Kenney
+
 - Install location: `~/Projects/assets/kenney/`
 - Keep the downloaded bundle(s) unpacked here.
 

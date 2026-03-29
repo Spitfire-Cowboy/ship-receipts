@@ -26,7 +26,7 @@ How does novelty affect human memory and perception of time? How can we apply th
 
 ### Applied to LLM agents
 
-- LLM agents running in long sessions may exhibit "session fatigue" — declining novelty_rate as the session progresses (confirmed by DR diagnostics).
+- LLM agents running in long sessions may exhibit "session fatigue" — declining novelty_rate as the session progresses (suggested by internal DR diagnostics snapshots from recent Rowan sessions).
 - Surfacing novel receipts vs. routine ones could be a signal for when to rotate agent context or start a new session.
 - The DR `novelty_rate` metric is a rough proxy for this — it measures how much new semantic content is being produced vs. repeated.
 
