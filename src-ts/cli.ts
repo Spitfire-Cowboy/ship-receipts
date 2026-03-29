@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, resolve, join } from "node:path";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import * as readline from "node:readline";
 import { computeBaseScore, streakMultiplier } from "./scoring/engine.js";
 import { GameState } from "./scoring/state.js";
@@ -25,6 +25,8 @@ Usage:
   ship-receipts score <receipt.json>
   ship-receipts validate <receipt.json>
   ship-receipts verify <receipt.json>
+  ship-receipts verify ots <receipt.json>
+  ship-receipts anchor ots <receipt.json> [--output <file>] [--network <name>]
   ship-receipts mint <receipt.json> [--output <file>] [--agent <name>] [--context-store <path>] [--confidence <0..1>] [--verification-result <pass|fail|skipped>] [--dr-signal <SHIP|CONTINUE|ESCALATE>]
   ship-receipts export <receipt.json> [--output <file>]
   ship-receipts streak
@@ -226,6 +228,189 @@ async function cmdInit(argv: string[]): Promise<number> {
 async function loadJson(path: string): Promise<JsonObject> {
   const raw = await readFile(path, "utf8");
   return JSON.parse(raw);
+}
+
+function cloneWithoutAnchors(receipt: JsonObject): JsonObject {
+  const clone = JSON.parse(JSON.stringify(receipt)) as JsonObject;
+  delete clone.anchors;
+  return clone;
+}
+
+function computeOtsDigestHex(receipt: JsonObject): string {
+  const hash = computeContentHash(cloneWithoutAnchors(receipt));
+  return hash.replace(/^sha256:/, "");
+}
+
+function runOtsCommand(args: string[]): void {
+  try {
+    execFileSync("ots", args, { stdio: ["ignore", "pipe", "pipe"] });
+  } catch (error: any) {
+    if (error?.code === "ENOENT") {
+      throw new Error("OpenTimestamps CLI not found. Install with: pip3 install opentimestamps-client");
+    }
+    const stderr = Buffer.isBuffer(error?.stderr)
+      ? error.stderr.toString("utf8").trim()
+      : typeof error?.stderr === "string"
+        ? error.stderr.trim()
+        : "";
+    const detail = stderr ? `: ${stderr}` : "";
+    throw new Error(`ots ${args[0]} failed${detail}`);
+  }
+}
+
+function runOtsStamp(digestPath: string, network?: string): void {
+  if (!network) {
+    runOtsCommand(["stamp", digestPath]);
+    return;
+  }
+  try {
+    runOtsCommand(["stamp", "--network", network, digestPath]);
+  } catch (error: any) {
+    const message = String(error?.message ?? error);
+    // Some ots client builds do not expose a --network flag.
+    if (!/unknown|unrecognized|invalid option|no such option/i.test(message)) {
+      throw error;
+    }
+    runOtsCommand(["stamp", digestPath]);
+  }
+}
+
+function parseAnchorOtsArgs(args: string[]): { receiptPath: string; outputPath?: string; network?: string } {
+  const receiptPath = args[0];
+  if (!receiptPath) {
+    throw new Error("missing receipt path");
+  }
+  let outputPath: string | undefined;
+  let network: string | undefined;
+  for (let i = 1; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === "--output" || arg === "-o") {
+      outputPath = readMintFlagValue(args, i, "--output");
+      i += 1;
+      continue;
+    }
+    if (arg === "--network") {
+      network = readMintFlagValue(args, i, "--network");
+      i += 1;
+      continue;
+    }
+    throw new Error(`unknown anchor flag '${arg}'`);
+  }
+  return { receiptPath, outputPath, network };
+}
+
+async function cmdAnchorOts(args: string[]): Promise<number> {
+  const opts = parseAnchorOtsArgs(args);
+  const receiptPath = resolve(opts.receiptPath);
+  const receipt = await loadJson(receiptPath);
+  const schemaErrors = validateReceiptShape(receipt);
+  if (schemaErrors.length > 0) {
+    console.error("error: receipt fails schema validation:");
+    for (const err of schemaErrors) {
+      console.error(`  ${err}`);
+    }
+    return 1;
+  }
+
+  const stampingReceipt = JSON.parse(JSON.stringify(receipt)) as JsonObject;
+  stampingReceipt.version = "1.2";
+  if (!stampingReceipt.meta || typeof stampingReceipt.meta !== "object") {
+    stampingReceipt.meta = {};
+  }
+  stampingReceipt.meta.schema_version = "1.2";
+
+  const digestHex = computeOtsDigestHex(stampingReceipt);
+  const scratchDir = await mkdtemp(join(tmpdir(), "ship-receipts-ots-"));
+  const digestPath = join(scratchDir, `${digestHex}.sha256`);
+  const proofPath = `${digestPath}.ots`;
+
+  try {
+    await writeFile(digestPath, Buffer.from(digestHex, "hex"));
+    runOtsStamp(digestPath, opts.network);
+    const proofBytes = await readFile(proofPath);
+    const proofB64 = proofBytes.toString("base64");
+
+    const anchored = JSON.parse(JSON.stringify(stampingReceipt)) as JsonObject;
+    anchored.meta.content_hash = computeContentHash(cloneWithoutAnchors(anchored));
+
+    const currentAnchors = Array.isArray(anchored.anchors) ? anchored.anchors : [];
+    const filtered = currentAnchors.filter((anchor: any) => anchor?.kind !== "opentimestamps");
+    const anchor: Record<string, any> = {
+      kind: "opentimestamps",
+      digest_alg: "sha256",
+      digest_hex: digestHex,
+      ots_proof: proofB64,
+    };
+    if (opts.network) {
+      anchor.network = opts.network;
+    }
+    filtered.push(anchor);
+    anchored.anchors = filtered;
+
+    const outPath = resolve(opts.outputPath ?? opts.receiptPath);
+    await writeFile(outPath, `${JSON.stringify(anchored, null, 2)}\n`, "utf8");
+    console.log(`Anchored with OpenTimestamps: ${outPath}`);
+    console.log(`  Digest: ${digestHex}`);
+    if (opts.network) {
+      console.log(`  Network: ${opts.network}`);
+    }
+    return 0;
+  } finally {
+    await rm(scratchDir, { recursive: true, force: true });
+  }
+}
+
+async function cmdVerifyOts(args: string[]): Promise<number> {
+  const receiptPath = args[0];
+  if (!receiptPath) {
+    console.error("error: missing receipt path");
+    return 1;
+  }
+  const resolvedPath = resolve(receiptPath);
+  const receipt = await loadJson(resolvedPath);
+  const schemaErrors = validateReceiptShape(receipt);
+  if (schemaErrors.length > 0) {
+    console.error("error: receipt fails schema validation:");
+    for (const err of schemaErrors) {
+      console.error(`  ${err}`);
+    }
+    return 1;
+  }
+
+  const anchors = Array.isArray(receipt.anchors) ? receipt.anchors : [];
+  const anchor = anchors.find((candidate: any) => candidate?.kind === "opentimestamps");
+  if (!anchor) {
+    console.error("error: no opentimestamps anchor found");
+    return 1;
+  }
+  if (typeof anchor.ots_proof !== "string" || anchor.ots_proof.length === 0) {
+    console.error("error: opentimestamps anchor missing ots_proof");
+    return 1;
+  }
+  if (typeof anchor.digest_hex !== "string" || !/^[a-f0-9]{64}$/.test(anchor.digest_hex)) {
+    console.error("error: opentimestamps anchor has invalid digest_hex");
+    return 1;
+  }
+
+  const digestHex = computeOtsDigestHex(receipt);
+  if (digestHex !== anchor.digest_hex) {
+    console.error("error: digest mismatch between receipt and opentimestamps anchor");
+    return 1;
+  }
+
+  const scratchDir = await mkdtemp(join(tmpdir(), "ship-receipts-ots-verify-"));
+  const digestPath = join(scratchDir, `${digestHex}.sha256`);
+  const proofPath = join(scratchDir, `${digestHex}.sha256.ots`);
+
+  try {
+    await writeFile(digestPath, Buffer.from(digestHex, "hex"));
+    await writeFile(proofPath, Buffer.from(anchor.ots_proof, "base64"));
+    runOtsCommand(["verify", proofPath, "-f", digestPath]);
+    console.log(`OTS verification passed for ${resolvedPath}`);
+    return 0;
+  } finally {
+    await rm(scratchDir, { recursive: true, force: true });
+  }
 }
 
 async function cmdValidate(receiptPath: string): Promise<number> {
@@ -490,9 +675,10 @@ function parseExportArgs(args: string[]): { receiptPath: string; outputPath?: st
 function validateReceiptShape(receipt: JsonObject): string[] {
   const errors: string[] = [];
   const isoUtcRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
+  const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
 
-  if (receipt.version !== "0.1" && receipt.version !== "1.0" && receipt.version !== "1.1") {
-    errors.push("$.version: must be '0.1', '1.0', or '1.1'");
+  if (receipt.version !== "0.1" && receipt.version !== "1.0" && receipt.version !== "1.1" && receipt.version !== "1.2") {
+    errors.push("$.version: must be '0.1', '1.0', '1.1', or '1.2'");
   }
 
   if (!receipt.subject || typeof receipt.subject !== "object") {
@@ -617,6 +803,45 @@ function validateReceiptShape(receipt: JsonObject): string[] {
       !Number.isNaN(Date.parse(receipt.ts));
     if (!validTs) {
       errors.push("$.ts: must be ISO-8601 string or null");
+    }
+  }
+
+  if (receipt.anchors !== undefined) {
+    if (!Array.isArray(receipt.anchors)) {
+      errors.push("$.anchors: must be array when present");
+    } else {
+      receipt.anchors.forEach((anchor: any, i: number) => {
+        if (!anchor || typeof anchor !== "object") {
+          errors.push(`$.anchors[${i}]: must be object`);
+          return;
+        }
+        if (anchor.kind !== "opentimestamps") {
+          errors.push(`$.anchors[${i}].kind: must be 'opentimestamps'`);
+        }
+        if (anchor.digest_alg !== "sha256") {
+          errors.push(`$.anchors[${i}].digest_alg: must be 'sha256'`);
+        }
+        if (typeof anchor.digest_hex !== "string" || !/^[a-f0-9]{64}$/.test(anchor.digest_hex)) {
+          errors.push(`$.anchors[${i}].digest_hex: must be 64-char lowercase hex`);
+        }
+        if (typeof anchor.ots_proof !== "string" || anchor.ots_proof.length === 0) {
+          errors.push(`$.anchors[${i}].ots_proof: required base64 string`);
+        } else if (!base64Regex.test(anchor.ots_proof)) {
+          errors.push(`$.anchors[${i}].ots_proof: invalid base64`);
+        }
+        if (anchor.network !== undefined && typeof anchor.network !== "string") {
+          errors.push(`$.anchors[${i}].network: must be string when present`);
+        }
+        if (anchor.verified_at !== undefined) {
+          const validVerifiedAt =
+            typeof anchor.verified_at === "string" &&
+            isoUtcRegex.test(anchor.verified_at) &&
+            !Number.isNaN(Date.parse(anchor.verified_at));
+          if (!validVerifiedAt) {
+            errors.push(`$.anchors[${i}].verified_at: must be ISO-8601 string`);
+          }
+        }
+      });
     }
   }
 
@@ -858,6 +1083,16 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
 
   const command = argv[0];
   try {
+    if (command === "anchor") {
+      if (argv[1] !== "ots") {
+        console.error("error: unknown anchor subcommand. Use: anchor ots <receipt.json>");
+        return 1;
+      }
+      return await cmdAnchorOts(argv.slice(2));
+    }
+    if (command === "verify" && argv[1] === "ots") {
+      return await cmdVerifyOts(argv.slice(2));
+    }
     if (command === "validate" || command === "verify") {
       if (!argv[1]) {
         console.error("error: missing receipt path");
