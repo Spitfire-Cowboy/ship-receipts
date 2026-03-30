@@ -39,6 +39,10 @@ jobs:
         run: |
           bash scripts/check-public-export-safety.sh
 
+      - name: Example anonymization gate
+        run: |
+          bash scripts/check-example-anonymization.sh
+
   test-ts:
     runs-on: ubuntu-latest
     steps:
