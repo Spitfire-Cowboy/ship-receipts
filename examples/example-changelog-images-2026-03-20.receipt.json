@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "subject": {
+    "name": "Example Builder",
+    "profiles": [
+      {"kind": "github", "url": "https://github.com/example-org"}
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "other",
+      "name": "Bug report: broken images on product changelog",
+      "url": "https://example.com/changelog",
+      "verify": [
+        {
+          "kind": "note",
+          "note": "Reported via email to security@example.com on Mar 19, 2026. Changelog images returned 404 errors in browser dev tools. Product team acknowledged and triaged.",
+          "source": "email-thread",
+          "observed_at": "2026-03-19T19:33:00Z"
+        },
+        {
+          "kind": "note",
+          "note": "Follow-up on Mar 20 confirmed 404s were still present; artifact currently represented as 'other'.",
+          "source": "email-thread",
+          "observed_at": "2026-03-20T12:08:00Z"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "name": "Cross-team escalation to upstream maintainers",
+      "url": "https://github.com/example-org/example-cli/pull/456",
+      "verify": [
+        {
+          "kind": "note",
+          "note": "Requested routing of the upstream PR to maintainers to accelerate remediation.",
+          "source": "email-thread",
+          "observed_at": "2026-03-20T11:30:00Z"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "name": "Social post amplifying upstream PR",
+      "url": "https://x.com/example_builder/status/1234567890123456789",
+      "verify": [
+        {
+          "kind": "note",
+          "note": "Posted publicly to increase visibility of the proposed fix.",
+          "source": "x.com",
+          "observed_at": "2026-03-20T11:06:00Z"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "created_at": "2026-03-20T12:30:00Z",
+    "generator": "ship-receipts-cli/1.0.0",
+    "tags": ["bug-report", "responsible-disclosure", "example", "advocacy"]
+  }
+}
