@@ -19,13 +19,13 @@
     {
       "kind": "other",
       "name": "DR Pricing Page",
-      "url": "https://github.com/Pro777/diminishing-returns-private",
+      "url": "https://github.com/example-org/diminishing-returns",
       "version": "0.1.0a1",
       "immutable_ref": "main@573796ade9f845678573d5b09c64b6f0f26ed5bb",
       "verify": [
         {
           "kind": "command",
-          "command": "cd ~/Projects/diminishing-returns-private && cat docs/pricing.md | head -5",
+          "command": "cd ~/Projects/diminishing-returns && cat docs/pricing.md | head -5",
           "source": "rowan-den",
           "observed_at": "2026-03-02T14:30:00Z"
         },
@@ -69,12 +69,12 @@
     {
       "kind": "other",
       "name": "MSFT Researcher Pitch Email",
-      "url": "https://github.com/Pro777/diminishing-returns-private",
+      "url": "https://github.com/example-org/diminishing-returns",
       "immutable_ref": "main@573796ade9f845678573d5b09c64b6f0f26ed5bb",
       "verify": [
         {
           "kind": "command",
-          "command": "cd ~/Projects/diminishing-returns-private && cat docs/pitch-email-msft-researcher.md | head -5",
+          "command": "cd ~/Projects/diminishing-returns && cat docs/pitch-email-msft-researcher.md | head -5",
           "source": "rowan-den",
           "observed_at": "2026-03-02T14:30:00Z"
         }
@@ -83,7 +83,7 @@
     {
       "kind": "other",
       "name": "VSA Legal Analysis — DR Revenue Clearance",
-      "url": "file:///Users/johnmalone/Downloads/JOHNMALONE-VSA.pdf%20-%20signed.pdf",
+      "url": "file:///Users/example-user/Documents/VSA-SIGNED.pdf",
       "verify": [
         {
           "kind": "note",
@@ -166,7 +166,7 @@
   },
   "meta": {
     "created_at": "2026-03-02T14:30:00Z",
-    "content_hash": "sha256:5d8a1d8ced9546d9db38762d8bc55bddf1f059d1000ae721e0403d51098b7277",
+    "content_hash": "sha256:0172827fb1c8ddf9f5ed57cd72d793469a21d20650b1b37f3090bcd5977aa3c6",
     "session": "rowan-den-session-2026-03-02",
     "agent": "claude-opus-4-6",
     "ideas_correlation": "01KJQF0HTPR1AYHD1ZRA4N6F3"
