@@ -2,7 +2,7 @@
   "version": "0.1",
   "receipt_id": "01JFQX7K4VBQM3N8P2R5T6W9XZ",
   "issued_at": "2026-03-01T09:30:00Z",
-  "subject": {"name": "John Malone"},
+  "subject": {"name": "Example Builder"},
   "artifacts": [
     {
       "kind": "repo",

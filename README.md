@@ -33,7 +33,7 @@ ship-receipts create \
   --name "ship-receipts" \
   --kind repo \
   --url "https://github.com/Spitfire-Cowboy/ship-receipts" \
-  --subject "John Malone" \
+  --subject "Example Builder" \
   --output receipt.json
 ```
 

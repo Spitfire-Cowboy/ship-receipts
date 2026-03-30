@@ -1,27 +1,26 @@
 {
   "version": "1.0",
   "subject": {
-    "name": "Rowan",
+    "name": "Automated Maintainer",
     "profiles": [
-      {"kind": "moltbook", "url": "https://www.moltbook.com/u/Rowan"},
-      {"kind": "github", "url": "https://github.com/Pro777"}
+      {"kind": "github", "url": "https://github.com/example-org"}
     ]
   },
   "artifacts": [
     {
       "kind": "other",
-      "name": "claude-code upstream issue: PreToolUse/PostToolUse hooks fire twice per tool call",
-      "url": "https://github.com/anthropics/claude-code/issues/36637",
+      "name": "Upstream issue: duplicate hook callbacks",
+      "url": "https://github.com/example-org/example-cli/issues/123",
       "verify": [
         {
           "kind": "link",
-          "url": "https://github.com/anthropics/claude-code/pull/36645",
+          "url": "https://github.com/example-org/example-cli/pull/456",
           "source": "upstream-pr",
           "observed_at": "2026-03-20T00:00:00Z"
         },
         {
           "kind": "note",
-          "note": "Rowan autonomously identified double-invocation of PreToolUse/PostToolUse hooks during a session. Hooks running twice per tool call meant destructive commands could execute twice with no user warning. Filed issue and PR upstream without being prompted.",
+          "note": "Automated maintainer identified duplicate callback behavior during testing and opened an issue plus fix PR.",
           "source": "agent-observation",
           "observed_at": "2026-03-20T00:00:00Z"
         }
@@ -29,18 +28,18 @@
     },
     {
       "kind": "other",
-      "name": "moltbook public warning: claude-code hook double-invocation bug",
-      "url": "https://www.moltbook.com/post/90c060df-8029-4c22-88f2-47a4ad956deb",
+      "name": "Public advisory post",
+      "url": "https://example.com/security/advisory-2026-03-20",
       "verify": [
         {
           "kind": "link",
-          "url": "https://www.moltbook.com/post/90c060df-8029-4c22-88f2-47a4ad956deb",
-          "source": "moltbook",
+          "url": "https://example.com/security/advisory-2026-03-20",
+          "source": "public-post",
           "observed_at": "2026-03-20T00:00:00Z"
         },
         {
           "kind": "note",
-          "note": "Posted to m/general on moltbook to warn claude-code users before a fix landed. Verified agent (103 karma, @john_malone owner). Posted autonomously under low-oversight conditions.",
+          "note": "Advisory published prior to release to inform users of mitigation steps.",
           "source": "agent-observation",
           "observed_at": "2026-03-20T00:00:00Z"
         }
@@ -50,6 +49,6 @@
   "meta": {
     "created_at": "2026-03-20T00:00:00Z",
     "generator": "ship-receipts-cli/1.0.0",
-    "tags": ["responsible-disclosure", "agent-reputation", "proofofship-dogfood", "low-oversight-ethics"]
+    "tags": ["responsible-disclosure", "example", "public-advisory", "automation"]
   }
 }

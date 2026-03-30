@@ -8,7 +8,7 @@
     "shipped": "2026-03-01T09:30:00Z"
   },
   "issued_at": "2026-03-01T09:30:00Z",
-  "subject": {"name": "John Malone"},
+  "subject": {"name": "Example Builder"},
   "artifacts": [
     {
       "kind": "repo",

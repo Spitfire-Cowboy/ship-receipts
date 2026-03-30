@@ -76,7 +76,7 @@ Each entry mints a concept with origin attribution and timestamp.
 
 ### GT-VERTICAL-001: Ignatius Study Bible semantic search
 
-- **Origin**: John Malone + Rowan (conversation, rowan-den)
+- **Origin**: Example Builder + Rowan (conversation, rowan-den)
 - **Date**: 2026-03-03
 - **Category**: Product concept (GT vertical)
 - **Summary**: A single-corpus Golden Thread instance indexing the complete Ignatius Catholic Study Bible (OT + NT) — RSV-CE text with Hahn/Mitch commentary, footnotes, cross-references, and topical essays. Pure retrieval, zero generation. The theological soundness guarantee comes from the architecture: the system never synthesizes or paraphrases, it only returns the actual source text with citation. This makes it the first semantic search of a complete study bible that is structurally incapable of theological hallucination. The chunking strategy must preserve verse-commentary pairings, cross-reference clusters, and complete essay arguments. Ignatius Press / St. Paul Center for Biblical Theology as licensing partner — they could validate orthodoxy by querying it themselves.

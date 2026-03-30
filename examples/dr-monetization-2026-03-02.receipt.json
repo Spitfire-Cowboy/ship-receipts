@@ -9,11 +9,11 @@
     "orcid": "0009-0005-3159-6067"
   },
   "subject": {
-    "name": "John Malone",
+    "name": "Example Builder",
     "profiles": [
       {
         "kind": "github",
-        "url": "https://github.com/Pro777"
+        "url": "https://github.com/example-org"
       },
       {
         "kind": "orcid",
@@ -136,30 +136,30 @@
     {
       "kind": "repo",
       "name": "Proofofship Issues Filed (4 new)",
-      "url": "https://github.com/Pro777/proofofship",
+      "url": "https://github.com/example-org/proofofship",
       "immutable_ref": "main@fcb75b09855d51a820c01e82a94198e586632359",
       "verify": [
         {
           "kind": "link",
-          "url": "https://github.com/Pro777/proofofship/issues/34",
+          "url": "https://github.com/example-org/proofofship/issues/34",
           "source": "github",
           "observed_at": "2026-03-02T07:00:00Z"
         },
         {
           "kind": "link",
-          "url": "https://github.com/Pro777/proofofship/issues/35",
+          "url": "https://github.com/example-org/proofofship/issues/35",
           "source": "github",
           "observed_at": "2026-03-02T07:00:00Z"
         },
         {
           "kind": "link",
-          "url": "https://github.com/Pro777/proofofship/issues/36",
+          "url": "https://github.com/example-org/proofofship/issues/36",
           "source": "github",
           "observed_at": "2026-03-02T07:00:00Z"
         },
         {
           "kind": "link",
-          "url": "https://github.com/Pro777/proofofship/issues/38",
+          "url": "https://github.com/example-org/proofofship/issues/38",
           "source": "github",
           "observed_at": "2026-03-02T08:00:00Z"
         }
@@ -168,11 +168,11 @@
   ],
   "issuer": {
     "name": "rowan-den",
-    "url": "https://github.com/Pro777/rowan"
+    "url": "https://github.com/example-org/rowan"
   },
   "meta": {
     "created_at": "2026-03-02T14:30:00Z",
-    "content_hash": "sha256:3591c5e691e630bba012b16fa40a0f0274902cb7c5232c805042b29c54bf85fa",
+    "content_hash": "sha256:543ff75d321a13dd50431bc1cfef5d84238395c4c1b3e7688f589fd990e43218",
     "session": "rowan-den-session-2026-03-02",
     "agent": "claude-opus-4-6",
     "ideas_correlation": "01KJQF0HTPR1AYHD1ZRA4N6F3"

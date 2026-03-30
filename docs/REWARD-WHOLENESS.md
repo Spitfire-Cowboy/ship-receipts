@@ -28,7 +28,7 @@ Rest, health activities, travel, and presence can be documented as `wellness` re
 ```json
 {
   "version": "1.0",
-  "subject": {"name": "John Malone"},
+  "subject": {"name": "Example Builder"},
   "artifacts": [
     {
       "kind": "wellness",
