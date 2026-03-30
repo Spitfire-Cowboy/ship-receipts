@@ -259,7 +259,12 @@ done
 git_sha="$(git rev-parse HEAD)"
 created_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 source_repo="$(git remote get-url origin 2>/dev/null || git rev-parse --show-toplevel)"
-manifest_resolved="$(resolve_path "$MANIFEST")"
+manifest_for_meta="$MANIFEST"
+if [[ "$MANIFEST" == "$ROOT_DIR/"* ]]; then
+  manifest_for_meta="${MANIFEST#$ROOT_DIR/}"
+elif [[ "$MANIFEST" == /* ]]; then
+  manifest_for_meta="$(basename "$MANIFEST")"
+fi
 historical_private_origin="${HISTORICAL_PRIVATE_ORIGIN:-}"
 
 historical_private_origin_line=""
@@ -272,7 +277,7 @@ cat > "$OUT_DIR/PUBLIC_EXPORT_META.json" <<EOF
 {
   "source_repo": "$source_repo",
   "source_commit": "$git_sha",
-  "allowlist_manifest": "$manifest_resolved",
+  "allowlist_manifest": "$manifest_for_meta",
   "generated_at_utc": "$created_at",
   "generator": "scripts/export-public.sh",
   "format_version": 1$historical_private_origin_line
