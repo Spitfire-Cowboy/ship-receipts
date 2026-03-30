@@ -31,7 +31,7 @@
       "verify": [
         {
           "kind": "command",
-          "command": "cat docs/pricing.md | head -5",
+          "command": "cd diminishing-returns && cat docs/pricing.md | head -5",
           "source": "rowan-den",
           "observed_at": "2026-03-02T14:30:00Z"
         },
@@ -80,7 +80,7 @@
       "verify": [
         {
           "kind": "command",
-          "command": "cat docs/pitch-email-msft-researcher.md | head -5",
+          "command": "cd diminishing-returns && cat docs/pitch-email-msft-researcher.md | head -5",
           "source": "rowan-den",
           "observed_at": "2026-03-02T14:30:00Z"
         }
@@ -172,7 +172,7 @@
   },
   "meta": {
     "created_at": "2026-03-02T14:30:00Z",
-    "content_hash": "sha256:f2ae5ac64d0f2b51f098467b7237f5ef41408c32d01649eda591db52eb42bbd0",
+    "content_hash": "sha256:3591c5e691e630bba012b16fa40a0f0274902cb7c5232c805042b29c54bf85fa",
     "session": "rowan-den-session-2026-03-02",
     "agent": "claude-opus-4-6",
     "ideas_correlation": "01KJQF0HTPR1AYHD1ZRA4N6F3"
