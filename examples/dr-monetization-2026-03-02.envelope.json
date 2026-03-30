@@ -1,7 +1,7 @@
 {
   "envelope_version": "1.0",
   "envelope_id": "01KJQF0KCH8CF54JSY50V9DKA",
-  "content_hash": "sha256:0172827fb1c8ddf9f5ed57cd72d793469a21d20650b1b37f3090bcd5977aa3c6",
+  "content_hash": "sha256:f2ae5ac64d0f2b51f098467b7237f5ef41408c32d01649eda591db52eb42bbd0",
   "submitted_at": "2026-03-02T14:30:00Z",
   "actor": {
     "github_username": "Pro777",
@@ -24,8 +24,14 @@
     "subject": {
       "name": "John Malone",
       "profiles": [
-        {"kind": "github", "url": "https://github.com/Pro777"},
-        {"kind": "orcid", "url": "https://orcid.org/0009-0005-3159-6067"}
+        {
+          "kind": "github",
+          "url": "https://github.com/Pro777"
+        },
+        {
+          "kind": "orcid",
+          "url": "https://orcid.org/0009-0005-3159-6067"
+        }
       ]
     },
     "artifacts": [
@@ -44,8 +50,8 @@
       },
       {
         "kind": "other",
-        "name": "VSA Legal Analysis — DR Revenue Clearance",
-        "url": "file:///Users/example-user/Documents/VSA-SIGNED.pdf"
+        "name": "VSA Legal Analysis \u2014 DR Revenue Clearance",
+        "url": "https://example.com/legal/VSA-SIGNED.pdf"
       },
       {
         "kind": "repo",
@@ -72,7 +78,7 @@
     },
     "meta": {
       "created_at": "2026-03-02T14:30:00Z",
-      "content_hash": "sha256:0172827fb1c8ddf9f5ed57cd72d793469a21d20650b1b37f3090bcd5977aa3c6",
+      "content_hash": "sha256:f2ae5ac64d0f2b51f098467b7237f5ef41408c32d01649eda591db52eb42bbd0",
       "session": "rowan-den-session-2026-03-02",
       "agent": "claude-opus-4-6",
       "ideas_correlation": "01KJQF0HTPR1AYHD1ZRA4N6F3"
