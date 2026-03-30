@@ -93,4 +93,4 @@ Schema `$id` URLs are stable identifiers and do not require a live verifier API.
 
 ## License
 
-Proprietary. See [`LICENSE`](LICENSE).
+Apache 2.0. See [`LICENSE`](LICENSE).
