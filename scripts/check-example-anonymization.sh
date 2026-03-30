@@ -28,4 +28,15 @@ if rg -n -H --color never \
   exit 1
 fi
 
+if rg -n -H --color never \
+  -e 'file://' \
+  -e '/Users/' \
+  -e '/home/' \
+  -e '~/' \
+  -e 'ship-receipts-private' \
+  "${TARGETS[@]}"; then
+  echo "error: implementation leak marker detected in public-facing examples/docs" >&2
+  exit 1
+fi
+
 echo "example anonymization check passed"
