@@ -87,4 +87,28 @@ describe("state", () => {
     expect(second.status).toBe("ACCEPTED");
     expect(state.state.streak.current).toBe(1);
   });
+
+  it("supports date-aware replay with streak breaks", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-state-"));
+    const state = GameState.fresh(root);
+
+    const first = richReceipt();
+    first.meta.created_at = "2026-03-01T10:00:00Z";
+
+    const second = richReceipt();
+    second.meta.created_at = "2026-03-02T10:00:00Z";
+    second.artifacts[0].immutable_ref = "def456";
+
+    const third = richReceipt();
+    third.meta.created_at = "2026-03-05T10:00:00Z";
+    third.artifacts[0].immutable_ref = "ghi789";
+
+    state.scoreReceipt(first, { scoreDate: first.meta.created_at, eventTimestamp: first.meta.created_at });
+    state.scoreReceipt(second, { scoreDate: second.meta.created_at, eventTimestamp: second.meta.created_at });
+    state.scoreReceipt(third, { scoreDate: third.meta.created_at, eventTimestamp: third.meta.created_at });
+
+    expect(state.state.streak.current).toBe(1);
+    expect(state.state.streak.longest).toBe(2);
+    expect((state.state.events ?? []).some((event: any) => event.type === "streak.broken")).toBe(true);
+  });
 });

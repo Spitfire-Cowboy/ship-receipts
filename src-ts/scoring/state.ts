@@ -15,9 +15,40 @@ const MAX_EVENTS = 1000;
 
 type Receipt = Record<string, any>;
 type State = Record<string, any>;
+type ScoreReceiptOptions = {
+  scoreDate?: string;
+  eventTimestamp?: string;
+};
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function isoAtStartOfDay(date: string): string {
+  return `${date}T00:00:00Z`;
+}
+
+function normalizeScoreDate(value?: string): string {
+  if (!value) return todayIso();
+  return value.slice(0, 10);
+}
+
+function defaultState(): State {
+  return {
+    version: "1",
+    subject: "",
+    total_score: 0,
+    receipts_submitted: 0,
+    receipts_rejected: 0,
+    streak: {
+      current: 0,
+      longest: 0,
+      last_qualifying_date: null,
+      streak_start_date: null,
+    },
+    history: [],
+    events: [],
+  };
 }
 
 function hasChecksum(receipt: Receipt): boolean {
@@ -48,22 +79,13 @@ export class GameState {
       const raw = await readFile(statePath, "utf8");
       return new GameState(rootDir, statePath, JSON.parse(raw));
     } catch {
-      return new GameState(rootDir, statePath, {
-        version: "1",
-        subject: "",
-        total_score: 0,
-        receipts_submitted: 0,
-        receipts_rejected: 0,
-        streak: {
-          current: 0,
-          longest: 0,
-          last_qualifying_date: null,
-          streak_start_date: null,
-        },
-        history: [],
-        events: [],
-      });
+      return new GameState(rootDir, statePath, defaultState());
     }
+  }
+
+  static fresh(rootDir = "."): GameState {
+    const statePath = join(rootDir, STATE_DIR, STATE_FILE);
+    return new GameState(rootDir, statePath, defaultState());
   }
 
   async save(): Promise<void> {
@@ -76,17 +98,17 @@ export class GameState {
     return history.some((h: any) => h?.receipt_hash === contentHash);
   }
 
-  private emitEvent(eventType: string, payload: Record<string, any>): void {
+  private emitEvent(eventType: string, payload: Record<string, any>, timestamp = new Date().toISOString()): void {
     const events = Array.isArray(this.state.events) ? this.state.events : [];
     events.push({
       type: eventType,
-      timestamp: new Date().toISOString(),
+      timestamp,
       payload,
     });
     this.state.events = events.slice(-MAX_EVENTS);
   }
 
-  private updateStreak(today: string, qualifies: boolean): void {
+  private updateStreak(today: string, qualifies: boolean, eventTimestamp: string): void {
     const streak = this.state.streak;
     const lastDate = streak.last_qualifying_date as string | null;
     if (!qualifies) return;
@@ -108,7 +130,7 @@ export class GameState {
         this.emitEvent("streak.broken", {
           previous_length: streak.current,
           break_date: today,
-        });
+        }, eventTimestamp);
         streak.current = 1;
         streak.last_qualifying_date = today;
         streak.streak_start_date = today;
@@ -120,20 +142,21 @@ export class GameState {
     }
   }
 
-  scoreReceipt(receipt: Receipt): Record<string, any> {
-    const today = todayIso();
+  scoreReceipt(receipt: Receipt, opts: ScoreReceiptOptions = {}): Record<string, any> {
+    const today = normalizeScoreDate(opts.scoreDate);
+    const eventTimestamp = opts.eventTimestamp ?? isoAtStartOfDay(today);
     const hashValid = validateContentHash(receipt);
     const hasHash = Boolean(receipt?.meta?.content_hash);
 
     if (hasHash && !hashValid) {
       this.state.receipts_rejected += 1;
-      this.emitEvent("receipt.rejected", { reason: "content_hash_mismatch" });
+      this.emitEvent("receipt.rejected", { reason: "content_hash_mismatch" }, eventTimestamp);
       return { status: "REJECTED", reason: "content_hash_mismatch", score: 0 };
     }
 
     const contentHash = (receipt?.meta?.content_hash as string) || computeContentHash(receipt);
     if (this.isDuplicate(contentHash)) {
-      this.emitEvent("receipt.duplicate", { receipt_hash: contentHash });
+      this.emitEvent("receipt.duplicate", { receipt_hash: contentHash }, eventTimestamp);
       return { status: "DUPLICATE", reason: "already_submitted", score: 0 };
     }
 
@@ -141,12 +164,12 @@ export class GameState {
     const currentStreak = this.state.streak.current as number;
     const finalScore = computeFinalScore(baseScore, currentStreak, receipt, hashValid && hasHash);
     const qualifies = qualifiesForStreak(baseScore);
-    this.updateStreak(today, qualifies);
+    this.updateStreak(today, qualifies, eventTimestamp);
     if (qualifies) {
       this.emitEvent("streak.advanced", {
         new_length: this.state.streak.current,
         date: today,
-      });
+      }, eventTimestamp);
     }
 
     if (receipt?.subject?.name) this.state.subject = receipt.subject.name;
@@ -172,7 +195,7 @@ export class GameState {
       receipt_hash: contentHash,
       score: finalScore,
       breakdown: entry.breakdown,
-    });
+    }, eventTimestamp);
 
     return {
       status: "ACCEPTED",

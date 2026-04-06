@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { chmod, mkdir, mkdtemp, readFile, writeFile, copyFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -61,6 +61,10 @@ exit 2
 }
 
 describe("ts cli", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("returns 1 with no command", async () => {
     const code = await main([]);
     expect(code).toBe(1);
@@ -455,6 +459,43 @@ describe("ts cli", () => {
       process.chdir(root);
       const code = await main(["wellness", "--json"]);
       expect(code).toBe(0);
+    } finally {
+      process.chdir(old);
+    }
+  });
+
+  it("simulate replays historical receipts without mutating live state", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-sim-"));
+    const receiptsDir = join(root, ".ship-receipts", "receipts");
+    const old = process.cwd();
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    try {
+      process.chdir(root);
+      await mkdir(receiptsDir, { recursive: true });
+
+      const first = sampleReceipt();
+      first.meta.created_at = "2026-03-01T10:00:00Z";
+      first.artifacts[0].immutable_ref = "abc123";
+
+      const second = sampleReceipt();
+      second.meta.created_at = "2026-03-02T10:00:00Z";
+      second.artifacts[0].immutable_ref = "def456";
+
+      await writeFile(join(receiptsDir, "second.json"), JSON.stringify(second, null, 2), "utf8");
+      await writeFile(join(receiptsDir, "first.json"), JSON.stringify(first, null, 2), "utf8");
+
+      const code = await main(["simulate", "--json"]);
+      expect(code).toBe(0);
+
+      const payload = JSON.parse(log.mock.calls.at(-1)?.[0] as string);
+      expect(payload.receipts_processed).toBe(2);
+      expect(payload.accepted).toBe(2);
+      expect(payload.longest_streak).toBe(2);
+      expect(payload.final_score).toBeGreaterThan(0);
+      await expect(readFile(join(root, ".ship-receipts", "game-state.json"), "utf8")).rejects.toMatchObject({
+        code: "ENOENT",
+      });
     } finally {
       process.chdir(old);
     }

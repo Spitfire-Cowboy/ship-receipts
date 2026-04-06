@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, resolve, join } from "node:path";
 import { homedir, tmpdir } from "node:os";
@@ -38,7 +38,8 @@ Usage:
   ship-receipts goal status
   ship-receipts goal complete
   ship-receipts wellness [--json]
-  ship-receipts daily [--watch] [--interval <seconds>]`;
+  ship-receipts daily [--watch] [--interval <seconds>]
+  ship-receipts simulate [<receipt.json> ...] [--receipts-dir <dir>] [--json]`;
 }
 
 async function prompt(question: string): Promise<string> {
@@ -228,6 +229,157 @@ async function cmdInit(argv: string[]): Promise<number> {
 async function loadJson(path: string): Promise<JsonObject> {
   const raw = await readFile(path, "utf8");
   return JSON.parse(raw);
+}
+
+async function collectSimulationReceiptPaths(argv: string[]): Promise<string[]> {
+  const positional: string[] = [];
+  let receiptsDir = join(".ship-receipts", "receipts");
+
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === "--receipts-dir") {
+      const next = argv[i + 1];
+      if (!next) {
+        throw new Error("missing value for --receipts-dir");
+      }
+      receiptsDir = next;
+      i += 1;
+      continue;
+    }
+    if (arg === "--json") continue;
+    positional.push(arg);
+  }
+
+  if (positional.length > 0) {
+    return positional.map((path) => resolve(path));
+  }
+
+  const dirPath = resolve(receiptsDir);
+  const entries = await readdir(dirPath, { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+    .map((entry) => join(dirPath, entry.name))
+    .sort();
+}
+
+type SimulationStep = {
+  path: string;
+  created_at: string;
+  status: string;
+  score: number;
+  streak: number;
+  reason?: string;
+};
+
+type SimulationSummary = {
+  receipts_processed: number;
+  accepted: number;
+  rejected: number;
+  duplicates: number;
+  final_score: number;
+  current_streak: number;
+  longest_streak: number;
+  milestones: Array<Record<string, any>>;
+  steps: SimulationStep[];
+};
+
+async function cmdSimulate(argv: string[]): Promise<number> {
+  const jsonMode = argv.includes("--json");
+  const receiptPaths = await collectSimulationReceiptPaths(argv);
+  if (receiptPaths.length === 0) {
+    console.error("error: no receipt files found for simulation");
+    return 1;
+  }
+
+  const loaded = await Promise.all(
+    receiptPaths.map(async (path) => ({ path, receipt: await loadJson(path) })),
+  );
+
+  loaded.sort((left, right) => {
+    const leftCreated = String(left.receipt?.meta?.created_at ?? "");
+    const rightCreated = String(right.receipt?.meta?.created_at ?? "");
+    if (leftCreated && rightCreated && leftCreated !== rightCreated) {
+      return leftCreated.localeCompare(rightCreated);
+    }
+    return left.path.localeCompare(right.path);
+  });
+
+  const state = GameState.fresh(resolve("."));
+  const summary: SimulationSummary = {
+    receipts_processed: loaded.length,
+    accepted: 0,
+    rejected: 0,
+    duplicates: 0,
+    final_score: 0,
+    current_streak: 0,
+    longest_streak: 0,
+    milestones: [],
+    steps: [],
+  };
+
+  for (const { path, receipt } of loaded) {
+    const schemaErrors = validateReceiptShape(receipt);
+    const createdAt = String(receipt?.meta?.created_at ?? "");
+    const scoreDate = createdAt ? createdAt.slice(0, 10) : undefined;
+    const eventTimestamp = createdAt || undefined;
+
+    if (schemaErrors.length > 0) {
+      summary.rejected += 1;
+      summary.steps.push({
+        path,
+        created_at: createdAt,
+        status: "REJECTED",
+        score: 0,
+        streak: state.state.streak?.current ?? 0,
+        reason: schemaErrors.join("; "),
+      });
+      continue;
+    }
+
+    const result = state.scoreReceipt(receipt, { scoreDate, eventTimestamp });
+    if (result.status === "ACCEPTED") summary.accepted += 1;
+    if (result.status === "REJECTED") summary.rejected += 1;
+    if (result.status === "DUPLICATE") summary.duplicates += 1;
+    summary.steps.push({
+      path,
+      created_at: createdAt,
+      status: result.status,
+      score: result.score ?? 0,
+      streak: result.streak ?? state.state.streak?.current ?? 0,
+      reason: result.reason,
+    });
+  }
+
+  summary.final_score = state.state.total_score ?? 0;
+  summary.current_streak = state.state.streak?.current ?? 0;
+  summary.longest_streak = state.state.streak?.longest ?? 0;
+  summary.milestones = (state.state.events ?? []).filter((event: any) =>
+    ["streak.advanced", "streak.broken", "receipt.rejected", "receipt.duplicate"].includes(event?.type),
+  );
+
+  if (jsonMode) {
+    console.log(JSON.stringify(summary, null, 2));
+    return 0;
+  }
+
+  console.log("Simulation Summary");
+  console.log(`  Receipts processed: ${summary.receipts_processed}`);
+  console.log(`  Accepted:           ${summary.accepted}`);
+  console.log(`  Rejected:           ${summary.rejected}`);
+  console.log(`  Duplicates:         ${summary.duplicates}`);
+  console.log(`  Final score:        ${summary.final_score}`);
+  console.log(`  Current streak:     ${summary.current_streak}`);
+  console.log(`  Longest streak:     ${summary.longest_streak}`);
+  console.log("");
+  if (summary.milestones.length === 0) {
+    console.log("  No milestone events emitted.");
+  } else {
+    console.log("  Milestones:");
+    for (const event of summary.milestones) {
+      console.log(`    ${event.timestamp}  ${event.type}`);
+    }
+  }
+  return 0;
 }
 
 function cloneWithoutAnchors(receipt: JsonObject): JsonObject {
@@ -1112,6 +1264,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if (command === "goal") return await cmdGoal(argv.slice(1));
     if (command === "wellness") return await cmdWellness(argv.slice(1));
     if (command === "daily") return await cmdDaily(argv.slice(1));
+    if (command === "simulate") return await cmdSimulate(argv.slice(1));
     if (command === "mint") {
       return await cmdMint(argv.slice(1));
     }
