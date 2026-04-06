@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { basename, resolve, join } from "node:path";
 import { homedir, tmpdir } from "node:os";
@@ -17,6 +18,8 @@ const VALID_ARTIFACT_KINDS = new Set(["repo", "release", "package", "dataset", "
 const VALID_VERIFY_KINDS = new Set(["command", "checksum", "note", "link", "attestation"]);
 const VALID_VERIFICATION_RESULTS = new Set<VerificationResult>(["pass", "fail", "skipped"]);
 const VALID_DR_SIGNALS = new Set(["SHIP", "CONTINUE", "ESCALATE"]);
+const VALID_RENDER_PRESETS = new Set(["proof-card", "streak-bumper", "ritual-clip"]);
+const VALID_MEDIA_FORMATS = new Set(["png", "gif", "mp4", "ascii-gif", "ascii-mp4"]);
 
 function usage(): string {
   return `ship-receipts CLI (TypeScript port)
@@ -29,6 +32,7 @@ Usage:
   ship-receipts anchor ots <receipt.json> [--output <file>] [--network <name>]
   ship-receipts mint <receipt.json> [--output <file>] [--agent <name>] [--context-store <path>] [--confidence <0..1>] [--verification-result <pass|fail|skipped>] [--dr-signal <SHIP|CONTINUE|ESCALATE>]
   ship-receipts export <receipt.json> [--output <file>]
+  ship-receipts render <receipt.json> --preset <proof-card|streak-bumper|ritual-clip> --asset <file> [--format <png|gif|mp4|ascii-gif|ascii-mp4>] [--output <file>] [--attach <receipt.json>] [--renderer <name>] [--renderer-version <version>]
   ship-receipts streak
   ship-receipts init [--name <name>] [--kind <kind>] [--url <url>] [--subject <name>] [--output <file>] [--hash]
   ship-receipts create [--name <name>] [--kind <kind>] [--url <url>] [--subject <name>] [--output <file>] [--hash]
@@ -229,6 +233,83 @@ async function cmdInit(argv: string[]): Promise<number> {
 async function loadJson(path: string): Promise<JsonObject> {
   const raw = await readFile(path, "utf8");
   return JSON.parse(raw);
+}
+
+async function computeFileContentHash(path: string): Promise<string> {
+  const raw = await readFile(path);
+  const digest = createHash("sha256").update(raw).digest("hex");
+  return `sha256:${digest}`;
+}
+
+function inferMediaFormat(assetPath: string): string {
+  const lower = assetPath.toLowerCase();
+  if (lower.endsWith(".png")) return "png";
+  if (lower.endsWith(".gif")) return "gif";
+  if (lower.endsWith(".mp4")) return "mp4";
+  return "png";
+}
+
+type RenderOptions = {
+  receiptPath: string;
+  preset: string;
+  assetPath: string;
+  format: string;
+  outputPath?: string;
+  attachPath?: string;
+  rendererName: string;
+  rendererVersion: string;
+};
+
+function parseRenderArgs(args: string[]): RenderOptions {
+  const receiptPath = args[0];
+  if (!receiptPath) throw new Error("missing receipt path");
+
+  let preset = "";
+  let assetPath = "";
+  let format = "";
+  let outputPath: string | undefined;
+  let attachPath: string | undefined;
+  let rendererName = "ship-receipts";
+  let rendererVersion = "0.1.0";
+
+  for (let i = 1; i < args.length; i += 1) {
+    const arg = args[i];
+    if ((arg === "--preset" || arg === "-p") && args[i + 1]) {
+      preset = args[++i];
+    } else if ((arg === "--asset" || arg === "-a") && args[i + 1]) {
+      assetPath = args[++i];
+    } else if (arg === "--format" && args[i + 1]) {
+      format = args[++i];
+    } else if ((arg === "--output" || arg === "-o") && args[i + 1]) {
+      outputPath = args[++i];
+    } else if (arg === "--attach" && args[i + 1]) {
+      attachPath = args[++i];
+    } else if (arg === "--renderer" && args[i + 1]) {
+      rendererName = args[++i];
+    } else if (arg === "--renderer-version" && args[i + 1]) {
+      rendererVersion = args[++i];
+    }
+  }
+
+  if (!preset) throw new Error("missing --preset");
+  if (!assetPath) throw new Error("missing --asset");
+  if (!VALID_RENDER_PRESETS.has(preset)) throw new Error(`invalid preset '${preset}'`);
+
+  const resolvedFormat = format || inferMediaFormat(assetPath);
+  if (!VALID_MEDIA_FORMATS.has(resolvedFormat)) {
+    throw new Error(`invalid format '${resolvedFormat}'`);
+  }
+
+  return {
+    receiptPath,
+    preset,
+    assetPath,
+    format: resolvedFormat,
+    outputPath,
+    attachPath,
+    rendererName,
+    rendererVersion,
+  };
 }
 
 async function collectSimulationReceiptPaths(argv: string[]): Promise<string[]> {
@@ -668,6 +749,60 @@ async function cmdExport(receiptPath: string, outputPath?: string): Promise<numb
   return 0;
 }
 
+async function cmdRender(argv: string[]): Promise<number> {
+  const opts = parseRenderArgs(argv);
+  const receipt = await loadJson(resolve(opts.receiptPath));
+  const schemaErrors = validateReceiptShape(receipt);
+  if (schemaErrors.length > 0) {
+    console.error("error: receipt fails schema validation:");
+    for (const err of schemaErrors) {
+      console.error(`  ${err}`);
+    }
+    return 1;
+  }
+
+  const mediaEntry = {
+    kind: opts.preset,
+    format: opts.format,
+    path: opts.assetPath,
+    content_hash: await computeFileContentHash(resolve(opts.assetPath)),
+    derived_from: computeContentHash(receipt),
+    renderer: {
+      name: opts.rendererName,
+      version: opts.rendererVersion,
+    },
+    label: opts.preset,
+  };
+
+  const manifest = {
+    preset: opts.preset,
+    generated_at: new Date().toISOString(),
+    receipt_path: resolve(opts.receiptPath),
+    receipt_hash: computeContentHash(receipt),
+    media: [mediaEntry],
+  };
+
+  const outputPath = resolve(opts.outputPath ?? `${opts.assetPath}.render.json`);
+  await writeFile(outputPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+
+  if (opts.attachPath) {
+    const attached = JSON.parse(JSON.stringify(receipt)) as JsonObject;
+    const existing = Array.isArray(attached.media) ? attached.media : [];
+    attached.media = [...existing, mediaEntry];
+    attached.meta = typeof attached.meta === "object" && attached.meta !== null ? attached.meta : {};
+    attached.meta.content_hash = computeContentHash(attached);
+    await writeFile(resolve(opts.attachPath), `${JSON.stringify(attached, null, 2)}\n`, "utf8");
+  }
+
+  console.log(`Render manifest written to ${outputPath}`);
+  console.log(`  Preset: ${opts.preset}`);
+  console.log(`  Asset:  ${opts.assetPath}`);
+  if (opts.attachPath) {
+    console.log(`  Attached receipt: ${resolve(opts.attachPath)}`);
+  }
+  return 0;
+}
+
 async function cmdStreak(): Promise<number> {
   const state = await GameState.create(".");
   const streak = state.state.streak;
@@ -997,6 +1132,53 @@ function validateReceiptShape(receipt: JsonObject): string[] {
     }
   }
 
+  if (receipt.media !== undefined) {
+    if (!Array.isArray(receipt.media)) {
+      errors.push("$.media: must be array when present");
+    } else {
+      receipt.media.forEach((media: any, i: number) => {
+        if (!media || typeof media !== "object") {
+          errors.push(`$.media[${i}]: must be object`);
+          return;
+        }
+        if (typeof media.kind !== "string" || media.kind.length === 0) {
+          errors.push(`$.media[${i}].kind: required string`);
+        }
+        if (typeof media.format !== "string" || !VALID_MEDIA_FORMATS.has(media.format)) {
+          errors.push(`$.media[${i}].format: invalid media format`);
+        }
+        if (media.path === undefined && media.uri === undefined) {
+          errors.push(`$.media[${i}]: path or uri is required`);
+        }
+        if (media.path !== undefined && typeof media.path !== "string") {
+          errors.push(`$.media[${i}].path: must be string when present`);
+        }
+        if (media.uri !== undefined && typeof media.uri !== "string") {
+          errors.push(`$.media[${i}].uri: must be string when present`);
+        }
+        if (typeof media.content_hash !== "string" || !/^sha256:[a-f0-9]{64}$/.test(media.content_hash)) {
+          errors.push(`$.media[${i}].content_hash: must be sha256 digest`);
+        }
+        if (typeof media.derived_from !== "string" || !/^sha256:[a-f0-9]{64}$/.test(media.derived_from)) {
+          errors.push(`$.media[${i}].derived_from: must be sha256 digest`);
+        }
+        if (!media.renderer || typeof media.renderer !== "object") {
+          errors.push(`$.media[${i}].renderer: required object`);
+        } else {
+          if (typeof media.renderer.name !== "string" || media.renderer.name.length === 0) {
+            errors.push(`$.media[${i}].renderer.name: required string`);
+          }
+          if (typeof media.renderer.version !== "string" || media.renderer.version.length === 0) {
+            errors.push(`$.media[${i}].renderer.version: required string`);
+          }
+          if (media.renderer.config_digest !== undefined && (typeof media.renderer.config_digest !== "string" || !/^sha256:[a-f0-9]{64}$/.test(media.renderer.config_digest))) {
+            errors.push(`$.media[${i}].renderer.config_digest: must be sha256 digest when present`);
+          }
+        }
+      });
+    }
+  }
+
   return errors;
 }
 
@@ -1267,6 +1449,9 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if (command === "simulate") return await cmdSimulate(argv.slice(1));
     if (command === "mint") {
       return await cmdMint(argv.slice(1));
+    }
+    if (command === "render") {
+      return await cmdRender(argv.slice(1));
     }
     if (command === "export") {
       const { receiptPath, outputPath } = parseExportArgs(argv.slice(1));

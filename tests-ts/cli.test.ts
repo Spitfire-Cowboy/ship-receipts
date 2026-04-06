@@ -158,6 +158,41 @@ describe("ts cli", () => {
     expect(code).toBe(1);
   });
 
+  it("validate passes with a well-formed media entry", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-cli-"));
+    const receipt = sampleReceipt();
+    receipt.media = [
+      {
+        kind: "proof-card",
+        format: "png",
+        path: "renders/proof-card.png",
+        content_hash: `sha256:${"a".repeat(64)}`,
+        derived_from: `sha256:${"b".repeat(64)}`,
+        renderer: { name: "ship-receipts", version: "0.1.0" },
+      },
+    ];
+    const file = join(root, "media.json");
+    await writeFile(file, JSON.stringify(receipt, null, 2), "utf8");
+    const code = await main(["validate", file]);
+    expect(code).toBe(0);
+  });
+
+  it("validate fails on malformed media entry", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-cli-"));
+    const receipt = sampleReceipt();
+    receipt.media = [
+      {
+        kind: "proof-card",
+        format: "exe",
+        renderer: { name: "ship-receipts" },
+      },
+    ];
+    const file = join(root, "bad-media.json");
+    await writeFile(file, JSON.stringify(receipt, null, 2), "utf8");
+    const code = await main(["validate", file]);
+    expect(code).toBe(1);
+  });
+
   it("anchor ots then verify ots succeeds with the ots client", async () => {
     const root = await mkdtemp(join(tmpdir(), "sr-ts-ots-"));
     const fakeBin = join(root, "bin");
@@ -292,6 +327,37 @@ describe("ts cli", () => {
     } finally {
       process.chdir(old);
     }
+  });
+
+  it("render writes a manifest and attached receipt copy", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-render-"));
+    const receiptFile = join(root, "receipt.json");
+    const assetFile = join(root, "proof-card.png");
+    const manifestFile = join(root, "proof-card.render.json");
+    const attachedFile = join(root, "receipt.rendered.json");
+
+    await writeFile(receiptFile, JSON.stringify(sampleReceipt(), null, 2), "utf8");
+    await writeFile(assetFile, "fake-png-data", "utf8");
+
+    const code = await main([
+      "render",
+      receiptFile,
+      "--preset", "proof-card",
+      "--asset", assetFile,
+      "--output", manifestFile,
+      "--attach", attachedFile,
+    ]);
+    expect(code).toBe(0);
+
+    const manifest = JSON.parse(await readFile(manifestFile, "utf8"));
+    expect(manifest.preset).toBe("proof-card");
+    expect(manifest.media[0].format).toBe("png");
+    expect(manifest.media[0].content_hash.startsWith("sha256:")).toBe(true);
+
+    const attached = JSON.parse(await readFile(attachedFile, "utf8"));
+    expect(Array.isArray(attached.media)).toBe(true);
+    expect(attached.media[0].kind).toBe("proof-card");
+    expect(attached.meta.content_hash.startsWith("sha256:")).toBe(true);
   });
 
   it("validate fails on bad hash", async () => {
