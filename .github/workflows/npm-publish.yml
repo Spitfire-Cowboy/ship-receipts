@@ -21,6 +21,12 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Test
         run: npm test
+      - name: Export safety gate
+        run: npm run check:public-export
+      - name: Example anonymization gate
+        run: npm run check:examples
+      - name: Package dry-run
+        run: npm run pack:dry-run
       - name: Publish
         run: npm publish --provenance --access public
         env:

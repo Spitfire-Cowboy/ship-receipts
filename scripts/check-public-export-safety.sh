@@ -23,16 +23,4 @@ bash scripts/export-public.sh --out "$TMP_DIR" >/dev/null
 file_count="$(find "$TMP_DIR" -type f | wc -l | tr -d ' ')"
 echo "scanning ${file_count} exported files for leak patterns"
 
-if rg -n -H --color never \
-  -e 'file://' \
-  -e '/Users/' \
-  -e '/home/' \
-  -e '~/' \
-  -e 'ship-receipts-private' \
-  -e '-private' \
-  "$TMP_DIR"; then
-  echo "error: public export leak pattern(s) detected" >&2
-  exit 1
-fi
-
-echo "public export safety check passed"
+node scripts/public-export-safety.mjs "$TMP_DIR"

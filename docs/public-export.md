@@ -1,6 +1,6 @@
-# Public Export (Private → Public)
+# Public Export
 
-This document defines the export path for generating a public-safe tree from the private repository using an explicit allowlist.
+This document defines the export path for generating a publish-safe tree from the current repository using an explicit allowlist.
 
 ## Files used
 
@@ -31,7 +31,7 @@ npm run build
    - `PUBLIC_EXPORT_META.json` (source commit + generator metadata)
    - `SHA256SUMS` (checksums for exported files)
 
-## Current public payload target
+## Current payload target
 
 The allowlist is aligned to the TS npm package source:
 
@@ -46,9 +46,9 @@ The allowlist is aligned to the TS npm package source:
 - `LICENSE`
 - `CHANGELOG.md`
 
-## Review checklist for operators
+## Review checklist
 
-Before pushing an export to public:
+Before publishing or reviewing an export artifact:
 
 1. Run dry-run and inspect selected files
 2. Generate export output

@@ -1,6 +1,6 @@
 version: 1
 
-# Paths/globs that are allowed to be exported from the private repo.
+# Paths/globs that are allowed in the publish-safe export tree.
 # Keep this allowlist intentionally small and explicit.
 include:
   - README.md

@@ -5,7 +5,7 @@ Branch: `codex/issues-27-28-33-34-pickup`
 
 ## Goal
 
-Track parity between Python runtime/tests and the in-progress TypeScript port.
+Track parity between the Python runtime/tests and the TypeScript CLI implementation.
 
 ## Implemented in TS
 

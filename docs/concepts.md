@@ -22,7 +22,7 @@ The game is for humans to have fun. You can cheat in single player. We don't car
 
 Proofofship is the optional global layer — the auditor. It independently re-verifies your receipts against public APIs and publishes a canonical reputation score. This is where anti-gaming rules are enforced. You can't cheat the auditor.
 
-Format and local tooling live here. Global verification lives at [proofofship](https://github.com/Pro777/proofofship).
+Format and local tooling live here. Global verification lives in the separate `proofofship` verifier.
 
 ## The full picture
 

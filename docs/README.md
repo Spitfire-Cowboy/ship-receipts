@@ -6,8 +6,10 @@ Start here:
 - [Site Genome Prompt Spec v1](./specs/site-genome-prompt-v1.md)
 - [Schema](../schema/) — the receipt/card JSON schema(s)
 - [Examples](../examples/) — sample receipts
+- [Public repo](https://github.com/Spitfire-Cowboy/ship-receipts)
+- [Issue tracker](https://github.com/Spitfire-Cowboy/ship-receipts/issues)
 
 Conceptual background:
-- [Proof of Ship](https://github.com/Pro777/proofofship)
+- Proof of Ship (`proofofship`, separate verifier)
 - [Diminishing Returns](https://github.com/Pro777/diminishing-returns)
 - [Renderable Prompt Object](https://github.com/Pro777/renderable-prompt-object)

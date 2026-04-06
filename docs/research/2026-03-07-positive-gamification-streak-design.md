@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-07
 **Author:** Codex via Rowan MCP
-**Scope:** Research support for [issue #45](https://github.com/Pro777/ship-receipts/issues/45), which proposes capping streak multipliers at 5 days and removing punitive reset behavior.
+**Scope:** Research support for [issue #45](https://github.com/Spitfire-Cowboy/ship-receipts/issues/45), which proposes capping streak multipliers at 5 days and removing punitive reset behavior.
 
 ---
 

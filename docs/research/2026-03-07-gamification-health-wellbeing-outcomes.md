@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-07
 **Author:** Codex
-**Scope:** Evidence relevant to [issue #45](https://github.com/Pro777/ship-receipts/issues/45) and the broader "human thriving, not grinding" design goal in ship-receipts.
+**Scope:** Evidence relevant to [issue #45](https://github.com/Spitfire-Cowboy/ship-receipts/issues/45) and the broader "human thriving, not grinding" design goal in ship-receipts.
 
 ---
 
@@ -114,7 +114,7 @@ For ship-receipts, that means the product should optimize for:
 
 These findings do **not** pin down exact streak multipliers.
 
-They do support the overall direction of [issue #45](https://github.com/Pro777/ship-receipts/issues/45):
+They do support the overall direction of [issue #45](https://github.com/Spitfire-Cowboy/ship-receipts/issues/45):
 
 - cap the streak horizon early rather than stretching to 30 days
 - avoid mechanics that punish weekends, illness, travel, or family life
@@ -136,7 +136,7 @@ A five-day cap is more defensible than a 30-day ladder because it rewards rhythm
 
 ## References
 
-- [Issue #45: Revise streak multipliers — cap at 5 days](https://github.com/Pro777/ship-receipts/issues/45)
+- [Issue #45: Revise streak multipliers — cap at 5 days](https://github.com/Spitfire-Cowboy/ship-receipts/issues/45)
 - [Similar exercise adherence and physical fitness outcomes are observed across distinct motivation profiles in older adults participating in a home-based structured exercise programme](https://osf.io/preprints/psyarxiv/gk74p_v2/)
 - [Disrupting Digital Habits Among Danish Adolescence: Evidence from 1.2 Million Social Media Interactions](https://osf.io/preprints/psyarxiv/ruvp3_v1/)
 - [Optimal Gamification of Self-Directed Learning: A Computational Method and its Real-World Evaluation in an App for Learning English](https://osf.io/preprints/psyarxiv/s4kqc_v1/)

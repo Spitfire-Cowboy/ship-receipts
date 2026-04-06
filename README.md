@@ -9,6 +9,8 @@ Each receipt answers four things:
 - who is claiming it
 
 Homepage: [shipreceipts.com](https://shipreceipts.com)
+Repository: [Spitfire-Cowboy/ship-receipts](https://github.com/Spitfire-Cowboy/ship-receipts)
+Issues: [github.com/Spitfire-Cowboy/ship-receipts/issues](https://github.com/Spitfire-Cowboy/ship-receipts/issues)
 
 ## What it is for
 
@@ -177,8 +179,8 @@ pip3 install opentimestamps-client
 `ship-receipts` records and packages claims locally.
 
 It does **not** independently verify those claims globally. That boundary belongs to
-[`proofofship`](https://github.com/Spitfire-Cowboy/proofofship-private), which re-checks
-receipts against the public record.
+the separate `proofofship` verifier, which re-checks receipts against the public
+record.
 
 The one scoped exception is OpenTimestamps anchoring:
 - `anchor ots` and `verify ots` call the external `ots` CLI
