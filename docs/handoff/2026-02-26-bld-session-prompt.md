@@ -18,7 +18,7 @@ You are reviewing two repos that work together:
 1. **ship-receipts** — `git clone git@github.com:Spitfire-Cowboy/ship-receipts.git`
    Local CLI tool. Free, open source. Creates structured proof-of-work receipts with JSON schema, scoring engine, streak tracking, badges, party mode. Game mode is single player.
 
-2. **proofofship** — `git clone git@github.com:Pro777/proofofship.git`
+2. **proofofship** — use the current canonical repo URL from the assignment issue
    Global reputation ledger. Free canonical ledger. FastAPI + SQLite. Independently verifies receipts via 6-stage pipeline. Time-decayed reputation scoring (90-day half-life). Game mode is MMO.
 
 Both repos are **code complete** as of 2026-02-26.
