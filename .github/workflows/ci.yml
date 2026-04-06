@@ -36,12 +36,10 @@ jobs:
           bash scripts/export-public.sh --out /tmp/ship-receipts-public --dry-run
 
       - name: Export leak gate
-        run: |
-          bash scripts/check-public-export-safety.sh
+        run: npm run check:public-export
 
       - name: Example anonymization gate
-        run: |
-          bash scripts/check-example-anonymization.sh
+        run: npm run check:examples
 
   test-ts:
     runs-on: ubuntu-latest
@@ -55,3 +53,5 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: TypeScript Tests
         run: npm test
+      - name: Package dry-run
+        run: npm run pack:dry-run

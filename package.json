@@ -3,6 +3,21 @@
   "version": "0.1.0",
   "description": "Local scoring engine and proof-envelope exporter for ship receipts.",
   "license": "Apache-2.0",
+  "homepage": "https://github.com/Spitfire-Cowboy/ship-receipts#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Spitfire-Cowboy/ship-receipts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Spitfire-Cowboy/ship-receipts/issues"
+  },
+  "keywords": [
+    "cli",
+    "json-schema",
+    "provenance",
+    "receipts",
+    "verification"
+  ],
   "type": "module",
   "bin": {
     "ship-receipts": "dist/cli.js"
@@ -13,14 +28,18 @@
     "schemas",
     "examples",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "tsup src-ts/cli.ts --format esm --dts --clean",
+    "check:examples": "bash scripts/check-example-anonymization.sh",
+    "check:public-export": "bash scripts/check-public-export-safety.sh",
+    "pack:dry-run": "npm pack --dry-run",
     "test": "vitest run",
     "presmoke:ts": "npm run build",
     "smoke:ts": "node --enable-source-maps scripts-ts/smoke.ts",
-    "prepublishOnly": "npm run build && npm run test"
+    "prepublishOnly": "npm run build && npm run test && npm run check:public-export && npm run check:examples && npm run pack:dry-run"
   },
   "engines": {
     "node": ">=20"

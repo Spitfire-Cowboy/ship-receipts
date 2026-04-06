@@ -1,9 +1,9 @@
 # TypeScript Port Lane
 
-This directory contains the in-progress TypeScript migration tracked by issue #27.
+This directory contains the TypeScript CLI implementation for `ship-receipts`.
 
 ## Current modules
-- `cli.ts` — command entrypoint (`validate`, `score`, `mint`, `export`, `streak`)
+- `cli.ts` — command entrypoint (`init`, `validate`, `verify`, `score`, `mint`, `export`, `render`, `daily`, `simulate`)
 - [`calibration.ts`](./calibration.ts) — rolling agent calibration (Brier score) lookup from Rowan context-store JSONL
 - `scoring/engine.ts` — score math + multipliers
 - `scoring/hash-validator.ts` — canonical JSON + SHA-256 content hash
@@ -16,6 +16,10 @@ This directory contains the in-progress TypeScript migration tracked by issue #2
 ## Run in CI
 - `npm ci`
 - `npm test`
+- `npm run check:public-export`
+- `npm run check:examples`
+- `npm run pack:dry-run`
 
-## Remaining parity work
-See [`docs/plans/2026-03-02-ts-port-parity-checklist.md`](../docs/plans/2026-03-02-ts-port-parity-checklist.md).
+## Reference docs
+- [`docs/plans/2026-03-02-ts-port-parity-checklist.md`](../docs/plans/2026-03-02-ts-port-parity-checklist.md)
+- [`README.md`](../README.md)

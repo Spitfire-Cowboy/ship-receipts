@@ -47,7 +47,7 @@
 
 ## Short blurb (for cross-linking, project lists, README references elsewhere)
 
-> **ship-receipts** defines a JSON format and local CLI for creating verifiable records of shipped work. Each receipt combines an artifact (repo, release, package) with verification hooks (checksums, CI links, commands) and provenance (who claimed it, when). A local game loop scores receipts based on proof depth — no proof means no score. The format is designed for machine validation; global reputation lives in [proofofship](https://github.com/Pro777/proofofship).
+> **ship-receipts** defines a JSON format and local CLI for creating verifiable records of shipped work. Each receipt combines an artifact (repo, release, package) with verification hooks (checksums, CI links, commands) and provenance (who claimed it, when). A local game loop scores receipts based on proof depth — no proof means no score. The format is designed for machine validation; global reputation lives in the separate `proofofship` verifier.
 
 ---
 
@@ -59,7 +59,7 @@
 >
 > The local game loop scores receipts based on proof depth, not social metrics. Receipts with no verification evidence score zero (the anti-slop rule). Streaks reward consistency; integrity bonuses reward tamper-evident receipts.
 >
-> Ship-receipts is local tooling. It runs on your machine, stores state locally, and never phones home. For global canonical reputation — leaderboards, cross-builder comparison, identity verification — see [proofofship](https://github.com/Pro777/proofofship), which ingests proof envelopes from ship-receipts and re-verifies independently.
+> Ship-receipts is local tooling. It runs on your machine, stores state locally, and never phones home. For global canonical reputation — leaderboards, cross-builder comparison, identity verification — see the separate `proofofship` verifier, which ingests proof envelopes from ship-receipts and re-verifies independently.
 
 ---
 
@@ -69,7 +69,7 @@
 > Clone the repo, score your first receipt in under 2 minutes.
 
 **For proofofship README cross-link:**
-> Receipts are created locally with [ship-receipts](https://github.com/Pro777/ship-receipts). Install it, create a receipt, and export a proof envelope.
+> Receipts are created locally with [ship-receipts](https://github.com/Spitfire-Cowboy/ship-receipts). Install it, create a receipt, and export a proof envelope.
 
 **For contributor call:**
 > Good first tasks are listed in the README. Feedback and bug reports welcome via issues.

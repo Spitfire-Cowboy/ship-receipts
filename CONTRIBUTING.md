@@ -10,6 +10,7 @@ Thanks for considering a contribution.
 ## Development
 - Clone the repo.
 - Run the tests (or the project’s documented verification steps).
+- If you touch publish-facing files, run `npm run check:public-export` and `npm run check:examples`.
 - If you’re changing docs/specs, keep referenced files linked.
 
 ## Pull requests

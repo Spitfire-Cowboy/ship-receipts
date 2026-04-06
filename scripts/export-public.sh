@@ -3,7 +3,7 @@ set -euo pipefail
 
 # export-public.sh
 #
-# First-slice skeleton for generating a public-safe export tree from this repo.
+# Generate a publish-safe export tree from this repo.
 #
 # Usage:
 #   ./scripts/export-public.sh --out /tmp/ship-receipts-public [--dry-run]
@@ -12,7 +12,7 @@ set -euo pipefail
 # - Uses an allowlist manifest (export/public-allowlist.yml)
 # - Copies only git-tracked files that match allowlist globs
 # - Dry-run mode prints what would be exported
-# - Full leak scanning/CI gates are intentionally deferred to later slices
+# - Leak scanning and release gates are enforced by companion checks
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MANIFEST="${ROOT_DIR}/export/public-allowlist.yml"
@@ -135,7 +135,7 @@ for pattern in "${INCLUDE_PATTERNS[@]}"; do
 
   if [[ $pattern_matches -eq 0 ]]; then
     # Support generated artifacts (for example dist/) that are intentionally
-    # gitignored in the private repo but should be exported publicly.
+    # gitignored in the working tree but should be included in the export.
     for file in $pattern; do
       if [[ ! -e "$file" ]]; then
         continue
