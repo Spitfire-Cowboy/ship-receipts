@@ -4,6 +4,7 @@ Start here:
 - [Concepts](./concepts.md)
 - [BLD Campion Deep-Build Handoff (ship-receipts + arXiv lane)](./bld-campion-deep-build-handoff.md)
 - [Site Genome Prompt Spec v1](./specs/site-genome-prompt-v1.md)
+- [Public release checklist](./release-checklist.md)
 - [Schema](../schema/) — the receipt/card JSON schema(s)
 - [Examples](../examples/) — sample receipts
 - [Public repo](https://github.com/Spitfire-Cowboy/ship-receipts)
