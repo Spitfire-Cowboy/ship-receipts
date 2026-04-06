@@ -2,7 +2,13 @@
 
 **Date:** 2026-02-26  
 **Author:** OpenClaw Subagent  
-**Status:** READY FOR EXECUTION
+**Status:** ARCHIVAL CONTEXT ONLY
+
+This document describes the repo-split plan before the current public repo shape
+was established. It is preserved as historical context, not as the current
+operating model. For the current publish path, use
+[`docs/public-export.md`](../public-export.md) and the live release scripts in
+[`scripts/`](../../scripts/).
 
 ## 1) Objective
 
