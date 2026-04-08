@@ -62,7 +62,11 @@ describe("runway preview server", () => {
     const indexResponse = await fetch(server.url);
     expect(indexResponse.status).toBe(200);
     expect(indexResponse.headers.get("content-type")).toContain("text/html");
-    expect(await indexResponse.text()).toContain("ship-receipts runway");
+    const html = await indexResponse.text();
+    expect(html).toContain("ship-receipts runway");
+    expect(html).toContain("pagination-meta");
+    expect(html).toContain("Previous");
+    expect(html).toContain("Next");
 
     const feedResponse = await fetch(new URL("receipts.json", server.url));
     expect(feedResponse.status).toBe(200);
