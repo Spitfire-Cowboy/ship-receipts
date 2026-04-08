@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
+import { createServer } from "node:http";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
@@ -33,6 +34,14 @@ export type RunwayGitBuildOptions = {
   days?: number;
   limit?: number;
   author?: string;
+};
+
+export type RunwayPreviewServer = {
+  close(): Promise<void>;
+  host: string;
+  outputDir: string;
+  port: number;
+  url: string;
 };
 
 type GitCommitRecord = {
@@ -1001,5 +1010,82 @@ export async function exportRunwaySite(receipts: ShipReceiptV1[], outputDir: str
     outputDir: resolvedOutputDir,
     indexPath,
     feedPath,
+  };
+}
+
+export async function startRunwayPreviewServer(
+  outputDir: string,
+  options: { host?: string; port?: number } = {},
+): Promise<RunwayPreviewServer> {
+  const resolvedOutputDir = resolve(outputDir);
+  const host = options.host ?? "127.0.0.1";
+  const port = options.port ?? 4173;
+  const indexPath = join(resolvedOutputDir, "index.html");
+  const feedPath = join(resolvedOutputDir, "receipts.json");
+
+  const server = createServer(async (request, response) => {
+    const isHead = request.method === "HEAD";
+    const reply = async (status: number, headers: Record<string, string>, bodyPath?: string) => {
+      response.writeHead(status, headers);
+      if (!isHead && bodyPath) {
+        response.end(await readFile(bodyPath));
+        return;
+      }
+      response.end();
+    };
+
+    try {
+      const pathname = new URL(request.url ?? "/", `http://${host}`).pathname;
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        await reply(405, { "content-type": "text/plain; charset=utf-8" });
+        return;
+      }
+
+      if (pathname === "/" || pathname === "/index.html") {
+        await reply(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }, indexPath);
+        return;
+      }
+
+      if (pathname === "/receipts.json") {
+        await reply(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }, feedPath);
+        return;
+      }
+
+      await reply(404, { "content-type": "text/plain; charset=utf-8" });
+    } catch {
+      response.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
+      response.end("runway preview unavailable");
+    }
+  });
+
+  await new Promise<void>((resolvePromise, rejectPromise) => {
+    server.once("error", rejectPromise);
+    server.listen(port, host, () => {
+      server.off("error", rejectPromise);
+      resolvePromise();
+    });
+  });
+
+  const address = server.address();
+  if (!address || typeof address === "string") {
+    throw new Error("could not determine preview server address");
+  }
+
+  return {
+    host,
+    outputDir: resolvedOutputDir,
+    port: address.port,
+    url: `http://${host}:${address.port}/`,
+    close: async () => {
+      await new Promise<void>((resolvePromise, rejectPromise) => {
+        server.close((error) => {
+          if (error) {
+            rejectPromise(error);
+            return;
+          }
+          resolvePromise();
+        });
+      });
+    },
   };
 }

@@ -12,7 +12,7 @@ import { GameState } from "./scoring/state.js";
 import { computeContentHash, validateContentHash } from "./scoring/hash-validator.js";
 import { exportProofEnvelope, readGameStateIfPresent } from "./envelope/export.js";
 import { readAgentCalibration, type VerificationResult } from "./calibration.js";
-import { exportRunwaySite, loadRunwayReceiptsFromFeed, loadRunwayReceiptsFromFiles, loadRunwayReceiptsFromGit } from "./runway.js";
+import { exportRunwaySite, loadRunwayReceiptsFromFeed, loadRunwayReceiptsFromFiles, loadRunwayReceiptsFromGit, startRunwayPreviewServer } from "./runway.js";
 
 type JsonObject = Record<string, any>;
 const VALID_ARTIFACT_KINDS = new Set(["repo", "release", "package", "dataset", "paper", "demo", "disclosure", "community_contribution", "wellness", "session_replay", "other"]);
@@ -45,7 +45,8 @@ Usage:
   ship-receipts wellness [--json]
   ship-receipts daily [--watch] [--interval <seconds>]
   ship-receipts simulate [<receipt.json> ...] [--receipts-dir <dir>] [--json]
-  ship-receipts runway build [<receipt.json> ...] [--receipts-dir <dir>] [--feed <receipts.json>] [--from-git] [--days <n>] [--limit <n>] [--author <name>] [--output-dir <dir>]`;
+  ship-receipts runway build [<receipt.json> ...] [--receipts-dir <dir>] [--feed <receipts.json>] [--from-git] [--days <n>] [--limit <n>] [--author <name>] [--output-dir <dir>]
+  ship-receipts runway preview [<receipt.json> ...] [--receipts-dir <dir>] [--feed <receipts.json>] [--from-git] [--days <n>] [--limit <n>] [--author <name>] [--output-dir <dir>] [--host <host>] [--port <n>]`;
 }
 
 async function prompt(question: string): Promise<string> {
@@ -465,7 +466,7 @@ async function cmdSimulate(argv: string[]): Promise<number> {
   return 0;
 }
 
-function parseRunwayBuildArgs(argv: string[]): {
+function parseRunwayArgs(argv: string[], defaultOutputDir = "runway"): {
   receiptPaths: string[];
   receiptsDir: string;
   outputDir: string;
@@ -474,15 +475,19 @@ function parseRunwayBuildArgs(argv: string[]): {
   days?: number;
   limit?: number;
   author?: string;
+  host?: string;
+  port?: number;
 } {
   const positional: string[] = [];
   let receiptsDir = join(".ship-receipts", "receipts");
-  let outputDir = "runway";
+  let outputDir = defaultOutputDir;
   let feedPath: string | undefined;
   let fromGit = false;
   let days: number | undefined;
   let limit: number | undefined;
   let author: string | undefined;
+  let host: string | undefined;
+  let port: number | undefined;
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -534,6 +539,21 @@ function parseRunwayBuildArgs(argv: string[]): {
       i += 1;
       continue;
     }
+    if (arg === "--host") {
+      const next = argv[i + 1];
+      if (!next) throw new Error("missing value for --host");
+      host = next;
+      i += 1;
+      continue;
+    }
+    if (arg === "--port") {
+      const next = argv[i + 1];
+      if (!next) throw new Error("missing value for --port");
+      port = Number(next);
+      if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error("--port must be an integer between 0 and 65535");
+      i += 1;
+      continue;
+    }
     positional.push(arg);
   }
 
@@ -546,16 +566,19 @@ function parseRunwayBuildArgs(argv: string[]): {
     days,
     limit,
     author,
+    host,
+    port,
   };
 }
 
 async function cmdRunway(argv: string[]): Promise<number> {
-  if (argv[0] !== "build") {
-    console.error("error: expected 'runway build'");
+  const subcommand = argv[0];
+  if (subcommand !== "build" && subcommand !== "preview") {
+    console.error("error: expected 'runway build' or 'runway preview'");
     return 1;
   }
 
-  const opts = parseRunwayBuildArgs(argv.slice(1));
+  const opts = parseRunwayArgs(argv.slice(1), subcommand === "preview" ? ".runway-preview" : "runway");
 
   let loadResult;
   if (opts.fromGit) {
@@ -580,13 +603,51 @@ async function cmdRunway(argv: string[]): Promise<number> {
   }
 
   const exported = await exportRunwaySite(loadResult.receipts, opts.outputDir);
-  console.log(`Runway exported to ${exported.outputDir}`);
+  if (subcommand === "build") {
+    console.log(`Runway exported to ${exported.outputDir}`);
+    console.log(`  HTML:     ${exported.indexPath}`);
+    console.log(`  Feed:     ${exported.feedPath}`);
+    console.log(`  Receipts: ${loadResult.receipts.length}`);
+    if (loadResult.skipped.length > 0) {
+      console.log(`  Skipped:  ${loadResult.skipped.length} unsupported receipt(s)`);
+    }
+    return 0;
+  }
+
+  const preview = await startRunwayPreviewServer(exported.outputDir, {
+    host: opts.host,
+    port: opts.port,
+  });
+
+  console.log(`Runway preview ready at ${preview.url}`);
   console.log(`  HTML:     ${exported.indexPath}`);
   console.log(`  Feed:     ${exported.feedPath}`);
   console.log(`  Receipts: ${loadResult.receipts.length}`);
   if (loadResult.skipped.length > 0) {
     console.log(`  Skipped:  ${loadResult.skipped.length} unsupported receipt(s)`);
   }
+  console.log("  Stop:     Ctrl+C");
+
+  await new Promise<void>((resolvePromise) => {
+    let closed = false;
+    const shutdown = async () => {
+      if (closed) return;
+      closed = true;
+      process.off("SIGINT", handleSigint);
+      process.off("SIGTERM", handleSigterm);
+      await preview.close();
+      resolvePromise();
+    };
+    const handleSigint = () => {
+      void shutdown();
+    };
+    const handleSigterm = () => {
+      void shutdown();
+    };
+    process.on("SIGINT", handleSigint);
+    process.on("SIGTERM", handleSigterm);
+  });
+
   return 0;
 }
 
