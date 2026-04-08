@@ -9,6 +9,7 @@ describe("release guardrails", () => {
     expect(pkg.scripts["check:examples"]).toBe("bash scripts/check-example-anonymization.sh");
     expect(pkg.scripts["pack:dry-run"]).toBe("npm pack --dry-run");
     expect(pkg.scripts["runway:build"]).toBe("node dist/cli.js runway build --from-git --days 3650 --output-dir .runway");
+    expect(pkg.scripts["runway:preview"]).toBe("node dist/cli.js runway preview --from-git --days 3650 --output-dir .runway-preview");
 
     const prepublishOnly = String(pkg.scripts.prepublishOnly ?? "");
     expect(prepublishOnly).toContain("npm run check:public-export");

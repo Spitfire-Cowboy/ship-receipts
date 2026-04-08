@@ -114,12 +114,28 @@ ship-receipts runway build \
   --output-dir ./runway
 ```
 
+Preview the same runway locally in a browser without depending on GitHub Pages:
+
+```bash
+ship-receipts runway preview \
+  --from-git \
+  --days 90
+```
+
+Or use the package shortcut after building this repo locally:
+
+```bash
+npm run build
+npm run runway:preview
+```
+
 This writes:
 - `runway/index.html`
 - `runway/receipts.json`
 
 You can then serve that directory statically from Caddy, GitHub Pages, S3, or any
-other static host.
+other static host. `runway preview` does the same export into `.runway-preview/` and
+serves it at a local `http://127.0.0.1:4173/`-style URL until you stop it.
 
 This repo also includes a GitHub Pages deploy path that publishes the generated
 runway bundle from `main`.
