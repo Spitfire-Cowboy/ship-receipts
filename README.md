@@ -14,18 +14,18 @@ Issues: [github.com/Spitfire-Cowboy/ship-receipts/issues](https://github.com/Spi
 
 ## What it is for
 
-`ship-receipts` is the local runtime. It lives in the repo where work is happening.
+`ship-receipts` is the local toolchain.
 
-It does three useful jobs:
-- create and validate receipts
+Today, it does four concrete things:
+- create receipts
+- validate receipts
 - score and replay local receipt history
-- attach ceremonial media hooks to real receipts
-- export a static runway viewer from `ship-receipt/v1` feeds
+- export a static runway viewer from `ship-receipt/v1` feeds or recent git history
 
-That last part matters: the game layer is not a separate click-farm. It is driven by
-actual shipped receipts and stays ambient in the CLI.
+If you only want the practical part, stop there. The game-mode layer is optional and
+still only partially implemented.
 
-## Install
+## 🛠 Install
 
 ```bash
 npx ship-receipts --help
@@ -39,7 +39,7 @@ npm run build
 npm test
 ```
 
-## Quick start
+## ⚡ Quick start
 
 Create a receipt:
 
@@ -72,12 +72,76 @@ VALID
 
 `create` is an alias of `init`, and `verify` is an alias of `validate`.
 
-## MVP demo flow
+## 🧾 Core workflow
 
-The current thin-slice demo is:
-- use a real receipt
-- replay receipts over time
-- attach a ceremonial asset to a shipped event
+The simplest human workflow is:
+- create a receipt for something you shipped
+- validate it
+- score it into local state
+
+```bash
+ship-receipts create \
+  --name "ship-receipts" \
+  --kind repo \
+  --url "https://github.com/Spitfire-Cowboy/ship-receipts" \
+  --subject "Example Builder" \
+  --output receipt.json
+
+ship-receipts validate receipt.json
+ship-receipts score receipt.json
+```
+
+That gives you a local, machine-readable record plus deterministic scoring.
+
+## ✈️ Runway
+
+Runway is the current human-facing viewer for receipt timelines.
+
+Generate a static runway site from `ship-receipt/v1` JSON:
+
+```bash
+ship-receipts runway build \
+  --feed ./receipts.json \
+  --output-dir ./runway
+```
+
+Or build the feed directly from recent git history in the current repo:
+
+```bash
+ship-receipts runway build \
+  --from-git \
+  --days 90 \
+  --output-dir ./runway
+```
+
+This writes:
+- `runway/index.html`
+- `runway/receipts.json`
+
+You can then serve that directory statically from Caddy, GitHub Pages, S3, or any
+other static host.
+
+This repo also includes a GitHub Pages deploy path that publishes the generated
+runway bundle from `main`.
+
+Preview:
+
+<table><tr>
+<td><a href="docs/assets/runway-desktop-view.png"><img src="docs/assets/runway-desktop-view.png" alt="Ship Receipts runway desktop view" width="420"></a></td>
+<td><a href="docs/assets/runway-mobile-view.png"><img src="docs/assets/runway-mobile-view.png" alt="Ship Receipts runway mobile view" width="240"></a></td>
+</tr></table>
+
+## 🎮 Optional game layer
+
+There is an optional game-flavored layer on top of the core receipt flow:
+- local scoring
+- streaks
+- simulation
+- ceremonial render hooks
+
+This is real enough to experiment with, but it is not yet a full game product.
+
+For current status, read [docs/game-mode/README.md](./docs/game-mode/README.md).
 
 ### 1. Replay historical receipts
 
@@ -120,45 +184,7 @@ Supported formats:
 - `ascii-gif`
 - `ascii-mp4`
 
-### 3. Export a runway viewer
-
-Generate a static runway site from `ship-receipt/v1` JSON:
-
-```bash
-ship-receipts runway build \
-  --feed ./receipts.json \
-  --output-dir ./runway
-```
-
-Or build the feed directly from recent git history in the current repo:
-
-```bash
-ship-receipts runway build \
-  --from-git \
-  --days 90 \
-  --output-dir ./runway
-```
-
-Or point it at individual receipt files:
-
-```bash
-ship-receipts runway build \
-  path/to/receipt-a.json \
-  path/to/receipt-b.json \
-  --output-dir ./runway
-```
-
-This writes:
-- `runway/index.html`
-- `runway/receipts.json`
-
-You can then serve that directory statically from Caddy, GitHub Pages, S3, or any
-other static host.
-
-This repo also includes a GitHub Pages deploy path that publishes the generated
-runway bundle from `main`.
-
-### 4. Keep the game mode ambient
+### 3. Keep the game mode ambient
 
 The intended shape is not "open a dashboard and grind."
 
@@ -170,7 +196,7 @@ The intended shape is:
 
 That keeps the loop legible and fun without turning it into manipulative busywork.
 
-## Other useful commands
+## Useful commands
 
 Score a receipt into local game state:
 
@@ -198,7 +224,7 @@ ship-receipts goal set "Return to Ithaca"
 ship-receipts goal status
 ```
 
-## OpenTimestamps
+## ⏱️ OpenTimestamps
 
 Anchor a receipt digest with OpenTimestamps:
 
@@ -213,7 +239,7 @@ ship-receipts verify ots receipt.json
 pip3 install opentimestamps-client
 ```
 
-## Trust boundary
+## 🔒 Trust boundary
 
 `ship-receipts` records and packages claims locally.
 
@@ -226,6 +252,15 @@ The one scoped exception is OpenTimestamps anchoring:
 - that verifies timestamp proof linkage for a digest
 - it does not replace global receipt verification
 
+## 📌 Public scope vs private design carryover
+
+Not every draft from the private repo is part of the public product surface.
+
+In this public repo:
+- the CLI, schemas, examples, and runway flow are current
+- some game-mode docs are retained as design drafts
+- draft docs should not be read as promises that a full playable game already exists
+
 ## Repo layout
 
 - schemas: [`schema/`](schema/) and [`schemas/`](schemas/)
@@ -233,6 +268,7 @@ The one scoped exception is OpenTimestamps anchoring:
 - TypeScript CLI source: [`src-ts/`](src-ts/)
 - test suite: [`tests-ts/`](tests-ts/)
 - docs index: [`docs/`](docs/)
+- game-mode status: [`docs/game-mode/README.md`](./docs/game-mode/README.md)
 
 ## License
 
