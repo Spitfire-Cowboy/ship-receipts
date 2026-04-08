@@ -69,7 +69,10 @@ describe("runway preview server", () => {
     expect(feedResponse.headers.get("content-type")).toContain("application/json");
     const payload = await feedResponse.json();
     expect(payload).toHaveLength(2);
-    expect(payload[0].receipt_id).toBe("rcpt_evt_preview_two");
+    expect(payload.map((entry: ShipReceiptV1) => entry.receipt_id)).toEqual([
+      "rcpt_evt_preview",
+      "rcpt_evt_preview_two",
+    ]);
 
     const missingResponse = await fetch(new URL("missing.json", server.url));
     expect(missingResponse.status).toBe(404);
