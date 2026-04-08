@@ -8,6 +8,7 @@ describe("release guardrails", () => {
     expect(pkg.scripts["check:public-export"]).toBe("bash scripts/check-public-export-safety.sh");
     expect(pkg.scripts["check:examples"]).toBe("bash scripts/check-example-anonymization.sh");
     expect(pkg.scripts["pack:dry-run"]).toBe("npm pack --dry-run");
+    expect(pkg.scripts["runway:build"]).toBe("node dist/cli.js runway build --from-git --days 3650 --output-dir .runway");
 
     const prepublishOnly = String(pkg.scripts.prepublishOnly ?? "");
     expect(prepublishOnly).toContain("npm run check:public-export");
@@ -29,5 +30,21 @@ describe("release guardrails", () => {
     expect(pkg.keywords).toEqual(
       expect.arrayContaining(["cli", "json-schema", "provenance", "receipts", "verification"]),
     );
+  });
+
+  it("keeps GitHub Actions deploying runway from the generated site bundle", async () => {
+    const workflow = await readFile(new URL("../.github/workflows/runway-pages.yml", import.meta.url), "utf8");
+    const ci = await readFile(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8");
+
+    expect(workflow).toContain("branches:");
+    expect(workflow).toContain("- main");
+    expect(workflow).toContain("actions/configure-pages@v5");
+    expect(workflow).toContain("npm run runway:build");
+    expect(workflow).toContain("actions/upload-pages-artifact@v3");
+    expect(workflow).toContain("path: ./.runway");
+    expect(workflow).toContain("actions/deploy-pages@v4");
+
+    expect(ci).toContain("Runway build smoke");
+    expect(ci).toContain("npm run runway:build");
   });
 });

@@ -12,7 +12,7 @@ A schema + examples for "ship receipts": provenance for what shipped and why.
 | Agent | Scope | Merges? |
 |-------|-------|---------|
 | Rowan (Claude, Mac Mini) | Orchestrator — reviews PRs, merges to main, coordinates work across agents | Yes — merges all PRs by default |
-| Codex (OpenAI) | Picks up labeled GitHub issues, works in permanent worktrees, pushes to origin | No — opens PRs only |
+| Codex (OpenAI) | Picks up labeled GitHub issues, works in permanent worktrees, pushes to origin | No by default — may merge when the user explicitly authorizes it |
 | BLD (Claude, Windows/GPU) | GPU-accelerated work, research queries, bulk processing | No — opens PRs only |
 
 ---
@@ -45,7 +45,7 @@ git stash pop
 2. Do NOT install software, download models, or add dependencies without explicit approval.
 3. Push everything to origin.
 4. Target `main` for PRs.
-5. Never close PRs — Rowan reviews and merges.
+5. Never close PRs. Rowan reviews and merges by default; Codex may merge only when the user explicitly authorizes it.
 6. Only work on the assigned issue. Do not freelance.
 7. Read this file and CLAUDE.md before starting any work.
 
@@ -54,7 +54,7 @@ git stash pop
 ## Merge Policy
 
 - Rowan merges by default.
-- Codex never merges.
+- Codex may merge only with explicit user authorization in the active session.
 - Never force-push to `main`.
 - Every PR needs `Closes #N` linking it to the issue.
 
@@ -87,7 +87,7 @@ When your PR is ready for Rowan to review and merge, add the `ready-for-review` 
 gh pr edit <PR_NUMBER> --add-label "ready-for-review"
 ```
 
-This is how Rowan knows your work is done. Do NOT merge — Rowan merges.
+This is how Rowan knows your work is done. Rowan merges by default. Codex may merge only when the user explicitly authorizes it in the active session.
 
 ## Progress Checkpoint
 

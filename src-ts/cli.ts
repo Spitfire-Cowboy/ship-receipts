@@ -12,6 +12,7 @@ import { GameState } from "./scoring/state.js";
 import { computeContentHash, validateContentHash } from "./scoring/hash-validator.js";
 import { exportProofEnvelope, readGameStateIfPresent } from "./envelope/export.js";
 import { readAgentCalibration, type VerificationResult } from "./calibration.js";
+import { exportRunwaySite, loadRunwayReceiptsFromFeed, loadRunwayReceiptsFromFiles, loadRunwayReceiptsFromGit } from "./runway.js";
 
 type JsonObject = Record<string, any>;
 const VALID_ARTIFACT_KINDS = new Set(["repo", "release", "package", "dataset", "paper", "demo", "disclosure", "community_contribution", "wellness", "session_replay", "other"]);
@@ -43,7 +44,8 @@ Usage:
   ship-receipts goal complete
   ship-receipts wellness [--json]
   ship-receipts daily [--watch] [--interval <seconds>]
-  ship-receipts simulate [<receipt.json> ...] [--receipts-dir <dir>] [--json]`;
+  ship-receipts simulate [<receipt.json> ...] [--receipts-dir <dir>] [--json]
+  ship-receipts runway build [<receipt.json> ...] [--receipts-dir <dir>] [--feed <receipts.json>] [--from-git] [--days <n>] [--limit <n>] [--author <name>] [--output-dir <dir>]`;
 }
 
 async function prompt(question: string): Promise<string> {
@@ -459,6 +461,131 @@ async function cmdSimulate(argv: string[]): Promise<number> {
     for (const event of summary.milestones) {
       console.log(`    ${event.timestamp}  ${event.type}`);
     }
+  }
+  return 0;
+}
+
+function parseRunwayBuildArgs(argv: string[]): {
+  receiptPaths: string[];
+  receiptsDir: string;
+  outputDir: string;
+  feedPath?: string;
+  fromGit: boolean;
+  days?: number;
+  limit?: number;
+  author?: string;
+} {
+  const positional: string[] = [];
+  let receiptsDir = join(".ship-receipts", "receipts");
+  let outputDir = "runway";
+  let feedPath: string | undefined;
+  let fromGit = false;
+  let days: number | undefined;
+  let limit: number | undefined;
+  let author: string | undefined;
+
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === "--receipts-dir") {
+      const next = argv[i + 1];
+      if (!next) throw new Error("missing value for --receipts-dir");
+      receiptsDir = next;
+      i += 1;
+      continue;
+    }
+    if (arg === "--output-dir") {
+      const next = argv[i + 1];
+      if (!next) throw new Error("missing value for --output-dir");
+      outputDir = next;
+      i += 1;
+      continue;
+    }
+    if (arg === "--feed") {
+      const next = argv[i + 1];
+      if (!next) throw new Error("missing value for --feed");
+      feedPath = next;
+      i += 1;
+      continue;
+    }
+    if (arg === "--from-git") {
+      fromGit = true;
+      continue;
+    }
+    if (arg === "--days") {
+      const next = argv[i + 1];
+      if (!next) throw new Error("missing value for --days");
+      days = Number(next);
+      if (!Number.isInteger(days) || days <= 0) throw new Error("--days must be a positive integer");
+      i += 1;
+      continue;
+    }
+    if (arg === "--limit") {
+      const next = argv[i + 1];
+      if (!next) throw new Error("missing value for --limit");
+      limit = Number(next);
+      if (!Number.isInteger(limit) || limit <= 0) throw new Error("--limit must be a positive integer");
+      i += 1;
+      continue;
+    }
+    if (arg === "--author") {
+      const next = argv[i + 1];
+      if (!next) throw new Error("missing value for --author");
+      author = next;
+      i += 1;
+      continue;
+    }
+    positional.push(arg);
+  }
+
+  return {
+    receiptPaths: positional.map((path) => resolve(path)),
+    receiptsDir,
+    outputDir,
+    feedPath,
+    fromGit,
+    days,
+    limit,
+    author,
+  };
+}
+
+async function cmdRunway(argv: string[]): Promise<number> {
+  if (argv[0] !== "build") {
+    console.error("error: expected 'runway build'");
+    return 1;
+  }
+
+  const opts = parseRunwayBuildArgs(argv.slice(1));
+
+  let loadResult;
+  if (opts.fromGit) {
+    loadResult = loadRunwayReceiptsFromGit({
+      cwd: ".",
+      days: opts.days,
+      limit: opts.limit,
+      author: opts.author,
+    });
+  } else if (opts.feedPath) {
+    loadResult = await loadRunwayReceiptsFromFeed(resolve(opts.feedPath));
+  } else {
+    const receiptPaths = opts.receiptPaths.length > 0
+      ? opts.receiptPaths
+      : await collectSimulationReceiptPaths(["--receipts-dir", opts.receiptsDir]);
+    loadResult = await loadRunwayReceiptsFromFiles(receiptPaths);
+  }
+
+  if (loadResult.receipts.length === 0) {
+    console.error("error: no ship-receipt/v1 entries found for runway export");
+    return 1;
+  }
+
+  const exported = await exportRunwaySite(loadResult.receipts, opts.outputDir);
+  console.log(`Runway exported to ${exported.outputDir}`);
+  console.log(`  HTML:     ${exported.indexPath}`);
+  console.log(`  Feed:     ${exported.feedPath}`);
+  console.log(`  Receipts: ${loadResult.receipts.length}`);
+  if (loadResult.skipped.length > 0) {
+    console.log(`  Skipped:  ${loadResult.skipped.length} unsupported receipt(s)`);
   }
   return 0;
 }
@@ -1447,6 +1574,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if (command === "wellness") return await cmdWellness(argv.slice(1));
     if (command === "daily") return await cmdDaily(argv.slice(1));
     if (command === "simulate") return await cmdSimulate(argv.slice(1));
+    if (command === "runway") return await cmdRunway(argv.slice(1));
     if (command === "mint") {
       return await cmdMint(argv.slice(1));
     }
