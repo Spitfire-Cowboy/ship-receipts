@@ -14,6 +14,8 @@ dist/
 build/
 .runway/
 .runway-preview/
+.runway-examples/
+.runway-examples-preview/
 
 # Local game state
 .ship-receipts/

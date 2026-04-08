@@ -129,6 +129,13 @@ npm run build
 npm run runway:preview
 ```
 
+Or preview a stable demo built from the checked-in public examples:
+
+```bash
+npm run build
+npm run runway:examples:preview
+```
+
 This writes:
 - `runway/index.html`
 - `runway/receipts.json`
@@ -136,6 +143,13 @@ This writes:
 You can then serve that directory statically from Caddy, GitHub Pages, S3, or any
 other static host. `runway preview` does the same export into `.runway-preview/` and
 serves it at a local `http://127.0.0.1:4173/`-style URL until you stop it.
+
+If you only want the static files for the checked-in sample corpus, use:
+
+```bash
+npm run build
+npm run runway:examples
+```
 
 This repo also includes a GitHub Pages deploy path that publishes the generated
 runway bundle from `main`.
