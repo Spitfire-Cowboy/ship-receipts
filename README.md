@@ -20,6 +20,7 @@ It does three useful jobs:
 - create and validate receipts
 - score and replay local receipt history
 - attach ceremonial media hooks to real receipts
+- export a static runway viewer from `ship-receipt/v1` feeds
 
 That last part matters: the game layer is not a separate click-farm. It is driven by
 actual shipped receipts and stays ambient in the CLI.
@@ -119,7 +120,45 @@ Supported formats:
 - `ascii-gif`
 - `ascii-mp4`
 
-### 3. Keep the game mode ambient
+### 3. Export a runway viewer
+
+Generate a static runway site from `ship-receipt/v1` JSON:
+
+```bash
+ship-receipts runway build \
+  --feed ./receipts.json \
+  --output-dir ./runway
+```
+
+Or build the feed directly from recent git history in the current repo:
+
+```bash
+ship-receipts runway build \
+  --from-git \
+  --days 90 \
+  --output-dir ./runway
+```
+
+Or point it at individual receipt files:
+
+```bash
+ship-receipts runway build \
+  path/to/receipt-a.json \
+  path/to/receipt-b.json \
+  --output-dir ./runway
+```
+
+This writes:
+- `runway/index.html`
+- `runway/receipts.json`
+
+You can then serve that directory statically from Caddy, GitHub Pages, S3, or any
+other static host.
+
+This repo also includes a GitHub Pages deploy path that publishes the generated
+runway bundle from `main`.
+
+### 4. Keep the game mode ambient
 
 The intended shape is not "open a dashboard and grind."
 

@@ -31,6 +31,10 @@ jobs:
           npm install --no-audit --no-fund
           npm run build
 
+      - name: Runway build smoke
+        run: |
+          npm run runway:build
+
       - name: Export dry-run smoke
         run: |
           bash scripts/export-public.sh --out /tmp/ship-receipts-public --dry-run

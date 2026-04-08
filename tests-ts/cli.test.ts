@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { chmod, mkdir, mkdtemp, readFile, writeFile, copyFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { execFileSync } from "node:child_process";
 import { main } from "../src-ts/cli.js";
 import { computeContentHash } from "../src-ts/scoring/hash-validator.js";
 
@@ -21,6 +22,26 @@ function sampleReceipt(): Record<string, any> {
         immutable_ref: "abc123",
       },
     ],
+  };
+}
+
+function sampleShipReceipt(overrides: Record<string, any> = {}): Record<string, any> {
+  const eventOverrides = overrides.event ?? {};
+  return {
+    schema: "ship-receipt/v1",
+    receipt_id: overrides.receipt_id ?? "rcpt_evt_2026-04-08_cli_runway",
+    issued_at: overrides.issued_at ?? "2026-04-08T12:00:00Z",
+    event: {
+      event_id: eventOverrides.event_id ?? "evt_2026-04-08_cli_runway",
+      event_hash: eventOverrides.event_hash ?? "abc123",
+      signal: "SHIP",
+      work_id: eventOverrides.work_id ?? "ship-receipts/runway",
+      actor: eventOverrides.actor ?? "agent:codex",
+      summary: eventOverrides.summary ?? "Ship runway from the CLI",
+      artifacts: eventOverrides.artifacts ?? ["dist/index.html"],
+      pr: eventOverrides.pr ?? "https://github.com/Spitfire-Cowboy/ship-receipts/pull/24",
+      commit: eventOverrides.commit ?? "0123456789abcdef0123456789abcdef01234567",
+    },
   };
 }
 
@@ -58,6 +79,18 @@ exit 2
 `;
   await writeFile(scriptPath, script, "utf8");
   await chmod(scriptPath, 0o755);
+}
+
+function git(cwd: string, args: string[], env: Record<string, string> = {}): string {
+  return execFileSync("git", args, {
+    cwd,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    env: {
+      ...process.env,
+      ...env,
+    },
+  }).trim();
 }
 
 describe("ts cli", () => {
@@ -771,5 +804,111 @@ describe("ts cli", () => {
     } finally {
       process.chdir(old);
     }
+  });
+
+  it("runway build exports a static viewer from ship-receipt v1 files", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-runway-"));
+    const validA = join(root, "a.receipt.json");
+    const validB = join(root, "b.receipt.json");
+    const ignored = join(root, "ignored.receipt.json");
+    const outDir = join(root, "runway");
+
+    await writeFile(validA, JSON.stringify(sampleShipReceipt(), null, 2), "utf8");
+    await writeFile(validB, JSON.stringify(sampleShipReceipt({
+      receipt_id: "rcpt_evt_2026-04-09_cli_runway",
+      issued_at: "2026-04-09T09:30:00Z",
+      event: {
+        work_id: "ship-receipts/release",
+        summary: "Publish a release candidate",
+        artifacts: ["dist/ship-receipts.tgz", "CHANGELOG.md"],
+      },
+    }), null, 2), "utf8");
+    await writeFile(ignored, JSON.stringify(sampleReceipt(), null, 2), "utf8");
+
+    const code = await main(["runway", "build", validA, ignored, validB, "--output-dir", outDir]);
+    expect(code).toBe(0);
+
+    const indexHtml = await readFile(join(outDir, "index.html"), "utf8");
+    const feed = JSON.parse(await readFile(join(outDir, "receipts.json"), "utf8"));
+
+    expect(indexHtml).toContain("ship-receipts runway");
+    expect(indexHtml).toContain("./receipts.json");
+    expect(feed).toHaveLength(2);
+    expect(feed[0].receipt_id).toBe("rcpt_evt_2026-04-09_cli_runway");
+    expect(feed[1].receipt_id).toBe("rcpt_evt_2026-04-08_cli_runway");
+  });
+
+  it("runway build accepts a prebuilt feed file", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-runway-feed-"));
+    const feedPath = join(root, "feed.json");
+    const outDir = join(root, "runway");
+
+    await writeFile(feedPath, JSON.stringify([
+      sampleShipReceipt({
+        receipt_id: "rcpt_evt_feed_one",
+        issued_at: "2026-04-07T10:00:00Z",
+      }),
+      sampleShipReceipt({
+        receipt_id: "rcpt_evt_feed_two",
+        issued_at: "2026-04-08T10:00:00Z",
+      }),
+    ], null, 2), "utf8");
+
+    const code = await main(["runway", "build", "--feed", feedPath, "--output-dir", outDir]);
+    expect(code).toBe(0);
+
+    const feed = JSON.parse(await readFile(join(outDir, "receipts.json"), "utf8"));
+    expect(feed).toHaveLength(2);
+    expect(feed[0].receipt_id).toBe("rcpt_evt_feed_two");
+    expect(feed[1].receipt_id).toBe("rcpt_evt_feed_one");
+  });
+
+  it("runway build can generate a feed directly from git history", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-runway-git-"));
+    const outDir = join(root, "runway");
+
+    git(root, ["init"]);
+    git(root, ["config", "user.name", "Test Builder"]);
+    git(root, ["config", "user.email", "test@example.com"]);
+    git(root, ["remote", "add", "origin", "git@github.com:Spitfire-Cowboy/ship-receipts.git"]);
+
+    await mkdir(join(root, "src-ts"), { recursive: true });
+    await mkdir(join(root, "docs"), { recursive: true });
+    await writeFile(join(root, "src-ts", "alpha.ts"), "export const alpha = 1;\n", "utf8");
+    git(root, ["add", "."], {
+      GIT_AUTHOR_DATE: "2026-04-07T10:00:00Z",
+      GIT_COMMITTER_DATE: "2026-04-07T10:00:00Z",
+    });
+    git(root, ["commit", "-m", "feat(runway): add generator (#24)"], {
+      GIT_AUTHOR_DATE: "2026-04-07T10:00:00Z",
+      GIT_COMMITTER_DATE: "2026-04-07T10:00:00Z",
+    });
+
+    await writeFile(join(root, "docs", "guide.md"), "# guide\n", "utf8");
+    git(root, ["add", "."], {
+      GIT_AUTHOR_DATE: "2026-04-08T11:30:00Z",
+      GIT_COMMITTER_DATE: "2026-04-08T11:30:00Z",
+    });
+    git(root, ["commit", "-m", "docs: add runway guide"], {
+      GIT_AUTHOR_DATE: "2026-04-08T11:30:00Z",
+      GIT_COMMITTER_DATE: "2026-04-08T11:30:00Z",
+    });
+
+    const old = process.cwd();
+    try {
+      process.chdir(root);
+      const code = await main(["runway", "build", "--from-git", "--days", "3650", "--output-dir", outDir]);
+      expect(code).toBe(0);
+    } finally {
+      process.chdir(old);
+    }
+
+    const feed = JSON.parse(await readFile(join(outDir, "receipts.json"), "utf8"));
+    expect(feed).toHaveLength(2);
+    expect(feed[0].event.work_id).toBe("ship-receipts/docs");
+    expect(feed[0].event.actor).toBe("agent:test-builder");
+    expect(feed[1].event.work_id).toBe("ship-receipts/src-ts");
+    expect(feed[1].event.pr).toBe("https://github.com/Spitfire-Cowboy/ship-receipts/pull/24");
+    expect(feed[0].proof.method).toBe("sha256-canonical-json");
   });
 });

@@ -46,6 +46,9 @@ Expected outcomes:
 The repository publishes on tags matching `v*` via
 [`npm-publish.yml`](../.github/workflows/npm-publish.yml).
 
+The repository also deploys the runway viewer on pushes to `main` via
+[`runway-pages.yml`](../.github/workflows/runway-pages.yml).
+
 Typical flow:
 
 ```bash
@@ -59,6 +62,11 @@ After pushing the tag:
 - watch the `npm-publish` workflow
 - confirm `npm test`, export safety, anonymization, and pack dry-run all pass in CI
 - confirm `npm publish --provenance --access public` succeeds
+
+After merging to `main`:
+- watch the `runway-pages` workflow
+- confirm the generated `.runway/` artifact uploads successfully
+- confirm GitHub Pages serves the latest git-derived runway feed
 
 ## Post-Release Checks
 

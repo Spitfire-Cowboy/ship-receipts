@@ -3,8 +3,9 @@
 This directory contains the TypeScript CLI implementation for `ship-receipts`.
 
 ## Current modules
-- `cli.ts` — command entrypoint (`init`, `validate`, `verify`, `score`, `mint`, `export`, `render`, `daily`, `simulate`)
+- `cli.ts` — command entrypoint (`init`, `validate`, `verify`, `score`, `mint`, `export`, `render`, `daily`, `simulate`, `runway build`)
 - [`calibration.ts`](./calibration.ts) — rolling agent calibration (Brier score) lookup from Rowan context-store JSONL
+- [`runway.ts`](./runway.ts) — static runway viewer export for `ship-receipt/v1` feeds
 - `scoring/engine.ts` — score math + multipliers
 - `scoring/hash-validator.ts` — canonical JSON + SHA-256 content hash
 - `scoring/state.ts` — local state persistence and scoring pipeline

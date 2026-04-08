@@ -36,6 +36,7 @@
     "check:examples": "bash scripts/check-example-anonymization.sh",
     "check:public-export": "bash scripts/check-public-export-safety.sh",
     "pack:dry-run": "npm pack --dry-run",
+    "runway:build": "node dist/cli.js runway build --from-git --days 3650 --output-dir .runway",
     "test": "vitest run",
     "presmoke:ts": "npm run build",
     "smoke:ts": "node --enable-source-maps scripts-ts/smoke.ts",
