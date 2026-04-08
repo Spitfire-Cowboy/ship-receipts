@@ -48,7 +48,7 @@ describe("runway preview server", () => {
           work_id: "ship-receipts/docs",
           actor: "agent:test-builder",
           summary: "Ship docs polish",
-          artifacts: ["README.md"],
+          artifacts: ["README.md", "docs/guide.md", "docs/assets/runway.png", "CHANGELOG.md"],
           pr: "https://github.com/Spitfire-Cowboy/ship-receipts/pull/29",
           commit: "abcdef012345",
         },
@@ -67,6 +67,8 @@ describe("runway preview server", () => {
     expect(html).toContain("pagination-meta");
     expect(html).toContain("Previous");
     expect(html).toContain("Next");
+    expect(html).toContain("artifact-overflow");
+    expect(html).toContain("+");
 
     const feedResponse = await fetch(new URL("receipts.json", server.url));
     expect(feedResponse.status).toBe(200);
