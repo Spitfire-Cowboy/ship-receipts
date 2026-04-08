@@ -37,6 +37,8 @@
     "check:public-export": "bash scripts/check-public-export-safety.sh",
     "pack:dry-run": "npm pack --dry-run",
     "runway:build": "node dist/cli.js runway build --from-git --days 3650 --output-dir .runway",
+    "runway:examples": "node dist/cli.js runway build --receipts-dir examples --output-dir .runway-examples",
+    "runway:examples:preview": "node dist/cli.js runway preview --receipts-dir examples --output-dir .runway-examples-preview",
     "runway:preview": "node dist/cli.js runway preview --from-git --days 3650 --output-dir .runway-preview",
     "test": "vitest run",
     "presmoke:ts": "npm run build",

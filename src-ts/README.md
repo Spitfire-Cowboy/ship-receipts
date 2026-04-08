@@ -21,6 +21,12 @@ This directory contains the TypeScript CLI implementation for `ship-receipts`.
 - `npm run check:examples`
 - `npm run pack:dry-run`
 
+## Useful local demo scripts
+- `npm run runway:build` — build a runway from this repo's git history
+- `npm run runway:preview` — preview that git-derived runway locally
+- `npm run runway:examples` — build a runway from the checked-in public examples
+- `npm run runway:examples:preview` — preview the examples-based runway locally
+
 ## Reference docs
 - [`docs/plans/2026-03-02-ts-port-parity-checklist.md`](../docs/plans/2026-03-02-ts-port-parity-checklist.md)
 - [`README.md`](../README.md)
