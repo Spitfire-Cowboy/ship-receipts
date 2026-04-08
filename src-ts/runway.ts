@@ -662,6 +662,18 @@ export function renderRunwayHtml(): string {
       margin-top: 10px;
     }
 
+    .artifact-summary {
+      margin-top: 10px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .artifact-overflow {
+      color: var(--amber);
+    }
+
     .empty-state {
       padding: 22px;
       margin-top: 18px;
@@ -988,9 +1000,14 @@ export function renderRunwayHtml(): string {
           var dayTitle = formatDay(flights[0].issuedAt);
 
           var cards = flights.map(function (item) {
-            var artifactHtml = item.artifacts.map(function (artifact) {
+            var previewArtifacts = item.artifacts.slice(0, 3);
+            var artifactHtml = previewArtifacts.map(function (artifact) {
               return '<span class="artifact">' + escapeHtml(artifact) + '</span>';
             }).join('');
+            var overflowCount = Math.max(0, item.artifacts.length - previewArtifacts.length);
+            var overflowHtml = overflowCount > 0
+              ? '<p class="artifact-summary"><span class="artifact-overflow">+' + String(overflowCount) + ' more</span></p>'
+              : '';
 
             var links = [];
             if (item.pr) {
@@ -1015,6 +1032,7 @@ export function renderRunwayHtml(): string {
                 '<div class="artifact-list">' +
                   '<p class="artifact-count">' + String(item.artifacts.length) + ' artifacts</p>' +
                   artifactHtml +
+                  overflowHtml +
                 '</div>' +
               '</article>'
             );

@@ -97,6 +97,7 @@ That gives you a local, machine-readable record plus deterministic scoring.
 
 Runway is the current human-facing viewer for receipt timelines.
 Longer feeds are paginated client-side so the initial view stays readable.
+Cards also summarize long artifact lists instead of dumping every artifact chip inline.
 
 Generate a static runway site from `ship-receipt/v1` JSON:
 
