@@ -96,6 +96,7 @@ That gives you a local, machine-readable record plus deterministic scoring.
 ## ✈️ Runway
 
 Runway is the current human-facing viewer for receipt timelines.
+Longer feeds are paginated client-side so the initial view stays readable.
 
 Generate a static runway site from `ship-receipt/v1` JSON:
 

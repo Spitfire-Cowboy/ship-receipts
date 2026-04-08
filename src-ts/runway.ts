@@ -552,6 +552,52 @@ export function renderRunwayHtml(): string {
       gap: 16px;
     }
 
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+      padding: 16px 18px;
+      flex-wrap: wrap;
+    }
+
+    .pagination[hidden] {
+      display: none;
+    }
+
+    .pagination-meta {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .pagination-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pagination-button {
+      border-radius: 999px;
+      border: 1px solid rgba(143, 211, 255, 0.18);
+      background: rgba(143, 211, 255, 0.08);
+      color: var(--text);
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .pagination-button[disabled] {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
     .day-card {
       padding: 22px;
     }
@@ -707,6 +753,14 @@ export function renderRunwayHtml(): string {
       <input class="search" id="runway-search" type="search" placeholder="summary, work id, artifact, actor" />
     </section>
 
+    <section class="panel pagination" id="pagination" hidden>
+      <span class="pagination-meta" id="pagination-meta">Page 1 of 1</span>
+      <div class="pagination-actions">
+        <button class="pagination-button" id="pagination-prev" type="button">Previous</button>
+        <button class="pagination-button" id="pagination-next" type="button">Next</button>
+      </div>
+    </section>
+
     <section class="timeline" id="timeline"></section>
     <section class="empty-state" id="empty-state" hidden>
       No runway matches this filter. Clear search or switch projects.
@@ -720,6 +774,7 @@ export function renderRunwayHtml(): string {
   <script>
     (function () {
       var FEED_URL = './receipts.json';
+      var PAGE_SIZE = 8;
 
       function escapeHtml(value) {
         return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
@@ -820,6 +875,7 @@ export function renderRunwayHtml(): string {
       }
 
       var state = {
+        page: 1,
         project: 'all',
         query: '',
         receipts: []
@@ -831,6 +887,10 @@ export function renderRunwayHtml(): string {
       var emptyState = document.getElementById('empty-state');
       var feedLabel = document.getElementById('feed-label');
       var resultsLabel = document.getElementById('results-label');
+      var pagination = document.getElementById('pagination');
+      var paginationMeta = document.getElementById('pagination-meta');
+      var paginationPrev = document.getElementById('pagination-prev');
+      var paginationNext = document.getElementById('pagination-next');
 
       function getVisibleReceipts() {
         return state.receipts.filter(function (item) {
@@ -846,6 +906,17 @@ export function renderRunwayHtml(): string {
           map[item.dayKey].push(item);
           return map;
         }, {});
+      }
+
+      function paginate(items) {
+        var totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+        if (state.page > totalPages) state.page = totalPages;
+        if (state.page < 1) state.page = 1;
+        var start = (state.page - 1) * PAGE_SIZE;
+        return {
+          pageItems: items.slice(start, start + PAGE_SIZE),
+          totalPages: totalPages
+        };
       }
 
       function renderFilters() {
@@ -885,15 +956,32 @@ export function renderRunwayHtml(): string {
         resultsLabel.textContent = String(visible.length) + ' visible';
       }
 
-      function renderTimeline(visible) {
-        if (!visible.length) {
+      function renderPagination(totalVisible, totalPages) {
+        if (!totalVisible || totalPages <= 1) {
+          pagination.hidden = true;
+          paginationMeta.textContent = 'Page 1 of 1';
+          paginationPrev.disabled = true;
+          paginationNext.disabled = true;
+          return;
+        }
+
+        pagination.hidden = false;
+        var start = (state.page - 1) * PAGE_SIZE + 1;
+        var end = Math.min(totalVisible, state.page * PAGE_SIZE);
+        paginationMeta.textContent = 'Page ' + String(state.page) + ' of ' + String(totalPages) + ' • Showing ' + String(start) + '–' + String(end) + ' of ' + String(totalVisible);
+        paginationPrev.disabled = state.page <= 1;
+        paginationNext.disabled = state.page >= totalPages;
+      }
+
+      function renderTimeline(pageItems) {
+        if (!pageItems.length) {
           timeline.innerHTML = '';
           emptyState.hidden = false;
           return;
         }
 
         emptyState.hidden = true;
-        var groups = groupByDay(visible);
+        var groups = groupByDay(pageItems);
         var dayKeys = Object.keys(groups).sort().reverse();
         timeline.innerHTML = dayKeys.map(function (dayKey) {
           var flights = groups[dayKey];
@@ -949,20 +1037,35 @@ export function renderRunwayHtml(): string {
 
       function render() {
         var visible = getVisibleReceipts();
+        var paginationState = paginate(visible);
         renderFilters();
         renderStats(visible);
-        renderTimeline(visible);
+        renderPagination(visible.length, paginationState.totalPages);
+        renderTimeline(paginationState.pageItems);
       }
 
       projectFilters.addEventListener('click', function (event) {
         var target = event.target.closest('[data-project]');
         if (!target) return;
         state.project = target.getAttribute('data-project') || 'all';
+        state.page = 1;
         render();
       });
 
       searchInput.addEventListener('input', function (event) {
         state.query = String(event.target.value || '').trim().toLowerCase();
+        state.page = 1;
+        render();
+      });
+
+      paginationPrev.addEventListener('click', function () {
+        if (state.page <= 1) return;
+        state.page -= 1;
+        render();
+      });
+
+      paginationNext.addEventListener('click', function () {
+        state.page += 1;
         render();
       });
 
