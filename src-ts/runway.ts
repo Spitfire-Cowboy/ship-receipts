@@ -152,6 +152,72 @@ function buildPullRequestUrl(summary: string, cwd: string): string | null {
   return `https://github.com/${githubRepo.owner}/${githubRepo.repo}/pull/${match[1]}`;
 }
 
+function normalizeLegacyReceiptArtifacts(receipt: JsonObject): string[] {
+  if (!Array.isArray(receipt?.artifacts)) return [];
+  return receipt.artifacts
+    .map((artifact: any) => {
+      if (!artifact || typeof artifact !== "object") return null;
+      if (typeof artifact.name === "string" && artifact.name.length > 0) return artifact.name;
+      if (typeof artifact.url === "string" && artifact.url.length > 0) return artifact.url;
+      if (typeof artifact.kind === "string" && artifact.kind.length > 0) return artifact.kind;
+      return null;
+    })
+    .filter((artifact: string | null): artifact is string => typeof artifact === "string" && artifact.length > 0);
+}
+
+function normalizeLegacyRunwayReceipt(receipt: JsonObject): ShipReceiptV1 | null {
+  if (typeof receipt?.receipt_id !== "string" || receipt.receipt_id.length === 0) return null;
+
+  const issuedAtRaw =
+    typeof receipt?.issued_at === "string" && receipt.issued_at.length > 0
+      ? receipt.issued_at
+      : (typeof receipt?.meta?.created_at === "string" && receipt.meta.created_at.length > 0 ? receipt.meta.created_at : "");
+  if (!issuedAtRaw) return null;
+
+  const issuedAt = new Date(issuedAtRaw);
+  if (Number.isNaN(issuedAt.getTime())) return null;
+
+  const subjectName = typeof receipt?.subject?.name === "string" ? receipt.subject.name.trim() : "";
+  if (!subjectName) return null;
+
+  const artifacts = normalizeLegacyReceiptArtifacts(receipt);
+  if (artifacts.length === 0) return null;
+
+  const primaryArtifact = Array.isArray(receipt?.artifacts) && receipt.artifacts[0] && typeof receipt.artifacts[0] === "object"
+    ? receipt.artifacts[0]
+    : {};
+  const primaryName = typeof primaryArtifact?.name === "string" && primaryArtifact.name.length > 0
+    ? primaryArtifact.name
+    : artifacts[0];
+  const primaryKind = typeof primaryArtifact?.kind === "string" && primaryArtifact.kind.length > 0
+    ? primaryArtifact.kind
+    : "artifact";
+  const workId = `${slugify(subjectName)}/${slugify(primaryName || primaryKind || "artifact")}`;
+  const summary = `Shipped ${primaryName || primaryKind}`;
+  const proofDigest =
+    typeof receipt?.meta?.content_hash === "string" && receipt.meta.content_hash.startsWith("sha256:")
+      ? receipt.meta.content_hash
+      : "";
+
+  return {
+    schema: "ship-receipt/v1",
+    receipt_id: receipt.receipt_id,
+    issued_at: issuedAt.toISOString(),
+    event: {
+      work_id: workId,
+      actor: `subject:${slugify(subjectName)}`,
+      summary,
+      artifacts,
+      pr: typeof primaryArtifact?.ci_url === "string" ? primaryArtifact.ci_url : null,
+      commit: typeof primaryArtifact?.immutable_ref === "string" ? primaryArtifact.immutable_ref : "",
+    },
+    proof: {
+      method: "sha256-canonical-json",
+      digest: proofDigest,
+    },
+  };
+}
+
 function buildGitShipReceipt(repoName: string, cwd: string, record: GitCommitRecord): ShipReceiptV1 {
   const eventId = `evt_${record.sha.slice(0, 12)}`;
   const eventCore = {
@@ -235,43 +301,46 @@ export function loadRunwayReceiptsFromGit(options: RunwayGitBuildOptions = {}): 
 }
 
 export function normalizeRunwayReceipt(receipt: JsonObject): ShipReceiptV1 | null {
-  if (receipt?.schema !== "ship-receipt/v1") return null;
-  if (typeof receipt?.receipt_id !== "string" || receipt.receipt_id.length === 0) return null;
-  if (typeof receipt?.issued_at !== "string" || receipt.issued_at.length === 0) return null;
-  if (!receipt?.event || typeof receipt.event !== "object") return null;
-  if (typeof receipt.event.work_id !== "string" || receipt.event.work_id.length === 0) return null;
-  if (typeof receipt.event.actor !== "string" || receipt.event.actor.length === 0) return null;
-  if (typeof receipt.event.summary !== "string" || receipt.event.summary.length === 0) return null;
+  if (receipt?.schema === "ship-receipt/v1") {
+    if (typeof receipt?.receipt_id !== "string" || receipt.receipt_id.length === 0) return null;
+    if (typeof receipt?.issued_at !== "string" || receipt.issued_at.length === 0) return null;
+    if (!receipt?.event || typeof receipt.event !== "object") return null;
+    if (typeof receipt.event.work_id !== "string" || receipt.event.work_id.length === 0) return null;
+    if (typeof receipt.event.actor !== "string" || receipt.event.actor.length === 0) return null;
+    if (typeof receipt.event.summary !== "string" || receipt.event.summary.length === 0) return null;
 
-  const issuedAt = new Date(receipt.issued_at);
-  if (Number.isNaN(issuedAt.getTime())) return null;
+    const issuedAt = new Date(receipt.issued_at);
+    if (Number.isNaN(issuedAt.getTime())) return null;
 
-  const artifacts = Array.isArray(receipt.event.artifacts)
-    ? receipt.event.artifacts.filter((artifact: unknown): artifact is string => typeof artifact === "string" && artifact.length > 0)
-    : [];
+    const artifacts = Array.isArray(receipt.event.artifacts)
+      ? receipt.event.artifacts.filter((artifact: unknown): artifact is string => typeof artifact === "string" && artifact.length > 0)
+      : [];
 
-  return {
-    schema: "ship-receipt/v1",
-    receipt_id: receipt.receipt_id,
-    issued_at: issuedAt.toISOString(),
-    event: {
-      work_id: receipt.event.work_id,
-      actor: receipt.event.actor,
-      summary: receipt.event.summary,
-      artifacts,
-      pr: typeof receipt.event.pr === "string" ? receipt.event.pr : null,
-      commit: typeof receipt.event.commit === "string" ? receipt.event.commit : "",
-    },
-    proof: receipt?.proof?.method === "sha256-canonical-json" && typeof receipt?.proof?.digest === "string"
-      ? {
-          method: "sha256-canonical-json",
-          digest: receipt.proof.digest,
-        }
-      : {
-          method: "sha256-canonical-json",
-          digest: "",
-        },
-  };
+    return {
+      schema: "ship-receipt/v1",
+      receipt_id: receipt.receipt_id,
+      issued_at: issuedAt.toISOString(),
+      event: {
+        work_id: receipt.event.work_id,
+        actor: receipt.event.actor,
+        summary: receipt.event.summary,
+        artifacts,
+        pr: typeof receipt.event.pr === "string" ? receipt.event.pr : null,
+        commit: typeof receipt.event.commit === "string" ? receipt.event.commit : "",
+      },
+      proof: receipt?.proof?.method === "sha256-canonical-json" && typeof receipt?.proof?.digest === "string"
+        ? {
+            method: "sha256-canonical-json",
+            digest: receipt.proof.digest,
+          }
+        : {
+            method: "sha256-canonical-json",
+            digest: "",
+          },
+    };
+  }
+
+  return normalizeLegacyRunwayReceipt(receipt);
 }
 
 async function readJson(path: string): Promise<JsonObject> {

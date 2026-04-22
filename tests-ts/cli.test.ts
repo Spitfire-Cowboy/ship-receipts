@@ -6,22 +6,27 @@ import { execFileSync } from "node:child_process";
 import { main } from "../src-ts/cli.js";
 import { computeContentHash } from "../src-ts/scoring/hash-validator.js";
 
-function sampleReceipt(): Record<string, any> {
+function sampleReceipt(overrides: Record<string, any> = {}): Record<string, any> {
+  const artifactOverrides = overrides.artifacts?.[0] ?? {};
+  const artifacts = overrides.artifacts ?? [
+    {
+      kind: artifactOverrides.kind ?? "repo",
+      name: artifactOverrides.name ?? "app",
+      url: artifactOverrides.url ?? "https://github.com/clitest/app",
+      immutable_ref: artifactOverrides.immutable_ref ?? "abc123",
+    },
+  ];
+
   return {
     version: "0.1",
+    receipt_id: overrides.receipt_id ?? "urn:ship-receipt:test:sample",
+    issued_at: overrides.issued_at,
     subject: {
-      name: "CLITest",
-      profiles: [{ kind: "github", url: "https://github.com/clitest" }],
+      name: overrides.subject?.name ?? "CLITest",
+      profiles: overrides.subject?.profiles ?? [{ kind: "github", url: "https://github.com/clitest" }],
     },
-    meta: { created_at: "2026-02-25T12:00:00Z" },
-    artifacts: [
-      {
-        kind: "repo",
-        name: "app",
-        url: "https://github.com/clitest/app",
-        immutable_ref: "abc123",
-      },
-    ],
+    meta: { created_at: overrides.meta?.created_at ?? "2026-02-25T12:00:00Z" },
+    artifacts,
   };
 }
 
@@ -823,7 +828,7 @@ describe("ts cli", () => {
         artifacts: ["dist/ship-receipts.tgz", "CHANGELOG.md"],
       },
     }), null, 2), "utf8");
-    await writeFile(ignored, JSON.stringify(sampleReceipt(), null, 2), "utf8");
+    await writeFile(ignored, JSON.stringify({ version: "0.1", artifacts: [] }, null, 2), "utf8");
 
     const code = await main(["runway", "build", validA, ignored, validB, "--output-dir", outDir]);
     expect(code).toBe(0);
@@ -836,6 +841,38 @@ describe("ts cli", () => {
     expect(feed).toHaveLength(2);
     expect(feed[0].receipt_id).toBe("rcpt_evt_2026-04-09_cli_runway");
     expect(feed[1].receipt_id).toBe("rcpt_evt_2026-04-08_cli_runway");
+  });
+
+  it("runway build accepts legacy receipt documents with receipt_id metadata", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-runway-legacy-"));
+    const legacy = join(root, "legacy.receipt.json");
+    const outDir = join(root, "runway");
+
+    await writeFile(legacy, JSON.stringify(sampleReceipt({
+      version: "1.0",
+      receipt_id: "urn:ship-receipt:legacy:one",
+      meta: { created_at: "2026-04-07T10:00:00Z" },
+      subject: { name: "Legacy Builder" },
+      artifacts: [
+        {
+          kind: "repo",
+          name: "legacy-app",
+          url: "https://github.com/legacy/app",
+          immutable_ref: "deadbeef",
+        },
+      ],
+    }), null, 2), "utf8");
+
+    const code = await main(["runway", "build", legacy, "--output-dir", outDir]);
+    expect(code).toBe(0);
+
+    const feed = JSON.parse(await readFile(join(outDir, "receipts.json"), "utf8"));
+    expect(feed).toHaveLength(1);
+    expect(feed[0].schema).toBe("ship-receipt/v1");
+    expect(feed[0].receipt_id).toBe("urn:ship-receipt:legacy:one");
+    expect(feed[0].event.work_id).toBe("legacy-builder/legacy-app");
+    expect(feed[0].event.actor).toBe("subject:legacy-builder");
+    expect(feed[0].event.summary).toContain("legacy-app");
   });
 
   it("runway build accepts a prebuilt feed file", async () => {

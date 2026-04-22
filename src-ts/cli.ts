@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { basename, resolve, join } from "node:path";
 import { homedir, tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -1663,8 +1663,8 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
   return 1;
 }
 
-const invokedPath = process.argv[1] ? resolve(process.argv[1]) : "";
-const currentModulePath = fileURLToPath(import.meta.url);
-if (existsSync(invokedPath) && invokedPath === currentModulePath) {
+const invokedPath = process.argv[1] && existsSync(process.argv[1]) ? realpathSync(process.argv[1]) : "";
+const currentModulePath = realpathSync(fileURLToPath(import.meta.url));
+if (invokedPath && invokedPath === currentModulePath) {
   main().then((code) => process.exit(code));
 }
