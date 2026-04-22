@@ -1,0 +1,28 @@
+{
+  "version": "0.1",
+  "receipt_id": "01JFQX7K4VBQM3N8P2R5T6W9XZ",
+  "issued_at": "2026-03-01T09:30:00Z",
+  "subject": {"name": "Example Builder"},
+  "artifacts": [
+    {
+      "kind": "repo",
+      "name": "ship-receipts",
+      "url": "https://github.com/Spitfire-Cowboy/ship-receipts",
+      "immutable_ref": "a3f8c12d4e5f6789"
+    }
+  ],
+  "attestation": {
+    "attestation_id": "01JFQX8M9WCRN4P7Q3S6V8Y2KH",
+    "origin": {
+      "agent_id": "example-agent",
+      "orcid": "0000-0000-0000-0000"
+    },
+    "evidence_hash": "sha256:4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb5b432d00d93c2d52",
+    "score": 0.85,
+    "rounds": 3,
+    "method": "local",
+    "trust_level": "local",
+    "refs": [],
+    "attested_at": "2026-03-01T09:35:00Z"
+  }
+}

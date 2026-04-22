@@ -1,0 +1,61 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Test
+        run: |
+          python -m pytest tests/ -v
+      - name: Smoke
+        run: |
+          python scripts/smoke_integration.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: 'npm'
+      - name: Build dist artifacts
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Runway build smoke
+        run: |
+          npm run runway:build
+
+      - name: Export dry-run smoke
+        run: |
+          bash scripts/export-public.sh --out /tmp/ship-receipts-public --dry-run
+
+      - name: Export leak gate
+        run: npm run check:public-export
+
+      - name: Example anonymization gate
+        run: npm run check:examples
+
+  test-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: 'npm'
+      - name: Install
+        run: npm install --no-audit --no-fund
+      - name: TypeScript Tests
+        run: npm test
+      - name: Package dry-run
+        run: npm run pack:dry-run

@@ -1,0 +1,46 @@
+{
+  "version": "0.1",
+  "receipt_id": "urn:ship:example-builder:disclosure-community-2026-03-20",
+  "issued_at": "2026-03-20T18:00:00Z",
+  "subject": {
+    "name": "Example Builder",
+    "profiles": [
+      {"kind": "github", "url": "https://github.com/example-org"}
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "disclosure",
+      "name": "Bug report: broken changelog image rendering",
+      "url": "https://github.com/example-org/example-cli/issues/123",
+      "verify": [
+        {"kind": "link", "url": "https://github.com/example-org/example-cli/issues/123", "note": "upstream issue filed Mar 20 2026"}
+      ]
+    },
+    {
+      "kind": "disclosure",
+      "name": "Fix PR: changelog image rendering",
+      "url": "https://github.com/example-org/example-cli/pull/456",
+      "verify": [
+        {"kind": "link", "url": "https://github.com/example-org/example-cli/pull/456", "note": "upstream PR filed Mar 20 2026"}
+      ]
+    },
+    {
+      "kind": "community_contribution",
+      "name": "Public write-up",
+      "url": "https://example.com/blog/disclosure-post-2026-03-20",
+      "verify": [
+        {"kind": "note", "note": "public post, Mar 20 2026"}
+      ]
+    },
+    {
+      "kind": "community_contribution",
+      "name": "Social post amplifying fix PR",
+      "url": "https://x.com/example_builder/status/example",
+      "verify": [
+        {"kind": "note", "note": "social post linking to upstream PR, Mar 20 2026"}
+      ]
+    }
+  ],
+  "notes": "Demonstrates disclosure and community_contribution artifact kinds using synthetic public references."
+}

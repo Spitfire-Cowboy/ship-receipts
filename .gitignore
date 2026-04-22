@@ -1,0 +1,32 @@
+# Kenney asset library (large, licensed — available locally for Seton UX work)
+# assets/README.md is committed; everything else under assets/ is ignored
+assets/*
+!assets/README.md
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Node.js
+node_modules/
+dist/
+build/
+.runway/
+.runway-preview/
+.runway-examples/
+.runway-examples-preview/
+
+# Local game state
+.ship-receipts/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.idea/
+.vscode/

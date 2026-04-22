@@ -1,0 +1,93 @@
+{
+  "envelope_version": "1.0",
+  "envelope_id": "01KJQF0KCH8CF54JSY50V9DKA",
+  "content_hash": "sha256:543ff75d321a13dd50431bc1cfef5d84238395c4c1b3e7688f589fd990e43218",
+  "submitted_at": "2026-03-02T14:30:00Z",
+  "actor": {
+    "github_username": "example-builder",
+    "display_name": "Example Builder",
+    "profile_urls": [
+      "https://github.com/example-org",
+      "https://orcid.org/0009-0005-3159-6067"
+    ]
+  },
+  "receipt": {
+    "version": "0.1",
+    "receipt_id": "urn:ship-receipt:dr-monetization:2026-03-02",
+    "issued_at": "2026-03-02T14:30:00Z",
+    "ideas_vector": {
+      "ulid": "01KJQF0HTPR1AYHD1ZRA4N6F3",
+      "idea_created_at": "2026-03-02T06:00:00Z",
+      "description": "DR revenue strategy: pricing tiers, pitch materials, MSFT researcher outreach, VSA clearance analysis",
+      "orcid": "0009-0005-3159-6067"
+    },
+    "subject": {
+      "name": "Example Builder",
+      "profiles": [
+        {
+          "kind": "github",
+          "url": "https://github.com/example-org"
+        },
+        {
+          "kind": "orcid",
+          "url": "https://orcid.org/0009-0005-3159-6067"
+        }
+      ]
+    },
+    "artifacts": [
+      {
+        "kind": "other",
+        "name": "DR Pricing Page",
+        "url": "https://github.com/example-org/diminishing-returns",
+        "version": "0.1.0a1",
+        "immutable_ref": "main@573796ade9f845678573d5b09c64b6f0f26ed5bb"
+      },
+      {
+        "kind": "other",
+        "name": "MSFT Researcher Pitch Email",
+        "url": "https://github.com/example-org/diminishing-returns",
+        "immutable_ref": "main@573796ade9f845678573d5b09c64b6f0f26ed5bb"
+      },
+      {
+        "kind": "other",
+        "name": "VSA Legal Analysis \u2014 DR Revenue Clearance",
+        "url": "https://example.com/legal/VSA-SIGNED.pdf"
+      },
+      {
+        "kind": "repo",
+        "name": "Codex TS Port PR #36 Review",
+        "url": "https://github.com/Spitfire-Cowboy/ship-receipts/pull/36",
+        "immutable_ref": "codex/issues-27-28-33-34-pickup@65cd53f777a57298ba5618d07973985f3fa5b1a1"
+      },
+      {
+        "kind": "repo",
+        "name": "Ship-Receipts Issues Filed (2 new)",
+        "url": "https://github.com/Spitfire-Cowboy/ship-receipts",
+        "immutable_ref": "main@65cd53f777a57298ba5618d07973985f3fa5b1a1"
+      },
+      {
+        "kind": "repo",
+        "name": "Proofofship Issues Filed (4 new)",
+        "url": "https://github.com/example-org/proofofship",
+        "immutable_ref": "main@fcb75b09855d51a820c01e82a94198e586632359"
+      }
+    ],
+    "issuer": {
+      "name": "example-studio",
+      "url": "https://github.com/example-org/ship-ops"
+    },
+    "meta": {
+      "created_at": "2026-03-02T14:30:00Z",
+      "content_hash": "sha256:543ff75d321a13dd50431bc1cfef5d84238395c4c1b3e7688f589fd990e43218",
+      "session": "example-session-2026-03-02",
+      "agent": "claude-opus-4-6",
+      "ideas_correlation": "01KJQF0HTPR1AYHD1ZRA4N6F3"
+    },
+    "notes": "Session 2026-03-02: DR monetization strategy (pricing + pitch), VSA legal clearance, Codex PR #36 review (B+), 6 GitHub issues filed across ship-receipts and proofofship (IDEAS vector, DR attestation alignment, ORCID, sealed claims, agent reputation, schema hosting). First receipt with ORCID identity anchor."
+  },
+  "export_metadata": {
+    "generator": "ship-receipts/example-agent",
+    "generator_version": "2026-03-02",
+    "ship_receipts_schema_version": "0.1"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "subject": {
+    "name": "Automated Maintainer",
+    "profiles": [
+      {"kind": "github", "url": "https://github.com/example-org"}
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "other",
+      "name": "Upstream issue: duplicate hook callbacks",
+      "url": "https://github.com/example-org/example-cli/issues/123",
+      "verify": [
+        {
+          "kind": "link",
+          "url": "https://github.com/example-org/example-cli/pull/456",
+          "source": "upstream-pr",
+          "observed_at": "2026-03-20T00:00:00Z"
+        },
+        {
+          "kind": "note",
+          "note": "Automated maintainer identified duplicate callback behavior during testing and opened an issue plus fix PR.",
+          "source": "agent-observation",
+          "observed_at": "2026-03-20T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "name": "Public advisory post",
+      "url": "https://example.com/security/advisory-2026-03-20",
+      "verify": [
+        {
+          "kind": "link",
+          "url": "https://example.com/security/advisory-2026-03-20",
+          "source": "public-post",
+          "observed_at": "2026-03-20T00:00:00Z"
+        },
+        {
+          "kind": "note",
+          "note": "Advisory published prior to release to inform users of mitigation steps.",
+          "source": "agent-observation",
+          "observed_at": "2026-03-20T00:00:00Z"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "created_at": "2026-03-20T00:00:00Z",
+    "generator": "ship-receipts-cli/1.0.0",
+    "tags": ["responsible-disclosure", "example", "public-advisory", "automation"]
+  }
+}

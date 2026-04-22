@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ship-receipts — The Odyssey</title>
+    <style>
+        :root {
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.5);
+            --accent-dim: rgba(0, 212, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0e27;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            color: #e0e0e0;
+            overflow: hidden;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .window {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #0a0e27;
+            border: 1px solid #333;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: #0a0e27;
+            border-bottom: 1px solid #222;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .titlebar {
+            background: linear-gradient(to bottom, #1a1f3a, #0f1428);
+            padding: 8px 12px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #666;
+            user-select: none;
+        }
+
+        .titlebar .dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .titlebar .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ff5555; }
+        .dot.yellow { background: #ffb000; }
+        .dot.green { background: #00ff41; }
+
+        .terminal {
+            flex: 1;
+            overflow: hidden;
+            padding: 20px;
+            background: #0a0e27;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        .terminal::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.03),
+                rgba(0, 0, 0, 0.03) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            z-index: 1;
+        }
+
+        #slidesContainer {
+            position: relative;
+            width: 100%;
+            z-index: 2;
+        }
+
+        pre {
+            display: none;
+            width: 100%;
+            background: transparent;
+            color: #e0e0e0;
+            font-family: inherit;
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow: hidden;
+            max-height: 100%;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        pre.active {
+            display: block;
+        }
+
+        pre::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        pre::-webkit-scrollbar-track {
+            background: #0a0e27;
+        }
+
+        pre::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        pre::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .controls {
+            background: linear-gradient(to bottom, #1a1f3a, #0f1428);
+            border-top: 1px solid #222;
+            padding: 12px 16px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            font-size: 12px;
+            user-select: none;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            background: #1a1f3a;
+            border: 1px solid #333;
+            color: var(--accent);
+            padding: 6px 14px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 2px;
+        }
+
+        button:hover:not(:disabled) {
+            background: #252d48;
+            border-color: var(--accent);
+            color: #00ff41;
+        }
+
+        button:active:not(:disabled) {
+            background: #1a1f3a;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .dot-btn {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            border: 1px solid #555;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dot-btn:hover {
+            background: #555;
+            border-color: var(--accent);
+        }
+
+        .dot-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .scene-counter {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .auto-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            background: #1a1f3a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            color: var(--accent);
+            font-size: 12px;
+        }
+
+        .auto-status.paused {
+            color: #ffb000;
+        }
+
+        .timer-bar {
+            display: inline-block;
+            width: 40px;
+            height: 2px;
+            background: #333;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+        }
+
+        .timer-fill.animating {
+            animation: countdown 10s linear forwards;
+        }
+
+        @keyframes countdown {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .status-area {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .c-grn { color: #00ff41; }
+        .c-red { color: #ff5555; }
+        .c-amb { color: #00d4ff; }
+        .c-mag { color: #ff00ff; }
+        .c-wht { color: #ffffff; }
+        .c-dim { color: #999; }
+
+        .cursor {
+            animation: blink 1s infinite;
+            color: var(--accent);
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="titlebar">
+            <div class="dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+            </div>
+            <span>ship-receipts — The Odyssey</span>
+            <span></span>
+        </div>
+
+        <div class="terminal" id="terminal">
+            <div id="slidesContainer"></div>
+        </div>
+
+        <div class="controls">
+            <div class="buttons">
+                <button type="button" id="prevBtn">← Back</button>
+                <button type="button" id="playPauseBtn">⏸ Pause</button>
+                <button type="button" id="nextBtn">Next →</button>
+            </div>
+            <div id="dotsContainer" class="nav-dots"></div>
+            <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+            <div class="status-area">
+                <div class="auto-status" id="autoStatus"><span class="status-icon">▶</span> <span>AUTO</span></div>
+                <div class="scene-counter" id="sceneCounter">Scene 1 of 8</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const totalSlides = 8;
+        let currentSlide = 0;
+        let isAutoAdvancing = true;
+        let autoAdvanceTimer = null;
+        const timers = [];
+        const intervals = [];
+
+        function t(fn, ms) {
+            const id = setTimeout(fn, ms);
+            timers.push(id);
+            return id;
+        }
+
+        function iv(fn, ms) {
+            const id = setInterval(fn, ms);
+            intervals.push(id);
+            return id;
+        }
+
+        function clearAll() {
+            timers.forEach(clearTimeout);
+            intervals.forEach(clearInterval);
+            timers.length = 0;
+            intervals.length = 0;
+        }
+
+        function typeCmd(el, L, cmd, cb) {
+            L.push('');
+            const idx = L.length - 1;
+            let i = 0;
+            const go = () => {
+                if (i <= cmd.length) {
+                    L[idx] = '<span class="c-amb">$ </span><span class="c-dim">' + cmd.substring(0, i) + '</span><span class="cursor">█</span>';
+                    el.innerHTML = L.join('\n');
+                    i++;
+                    t(go, 30 + Math.random() * 20);
+                } else {
+                    L[idx] = '<span class="c-amb">$ </span><span class="c-dim">' + cmd + '</span>';
+                    el.innerHTML = L.join('\n');
+                    t(cb, 300);
+                }
+            };
+            go();
+        }
+
+        function revealLines(el, L, lines, delay, cb) {
+            const startIdx = L.length;
+            lines.forEach(() => L.push(''));
+            let i = 0;
+            const go = () => {
+                if (i < lines.length) {
+                    L[startIdx + i] = lines[i];
+                    el.innerHTML = L.join('\n');
+                    i++;
+                    t(go, delay);
+                } else if (cb) t(cb, 200);
+            };
+            go();
+        }
+
+        function streamText(el, L, text, prefix, cb) {
+            const idx = L.length;
+            L.push('');
+            let i = 0;
+            const go = () => {
+                if (i <= text.length) {
+                    const partial = text.substring(0, i);
+                    const lines = partial.split('\n').map(ln => prefix + '<span class="c-wht">' + ln + '</span>');
+                    L[idx] = lines.join('\n');
+                    el.innerHTML = L.join('\n');
+                    i++;
+                    t(go, 25);
+                } else if (cb) t(cb, 300);
+            };
+            go();
+        }
+
+        function countUp(el, L, idx, template, target, cb) {
+            let val = 0;
+            const step = Math.max(1, Math.ceil(target / 20));
+            const go = () => {
+                val = Math.min(val + step, target);
+                L[idx] = template.replace('{{N}}', val);
+                el.innerHTML = L.join('\n');
+                if (val < target) t(go, 50);
+                else if (cb) t(cb, 400);
+            };
+            go();
+        }
+
+        function revealChecks(el, L, checks, startIdx, cb) {
+            let i = 0;
+            const go = () => {
+                if (i < checks.length) {
+                    L[startIdx + i] = checks[i];
+                    el.innerHTML = L.join('\n');
+                    i++;
+                    t(go, 400);
+                } else if (cb) t(cb, 300);
+            };
+            checks.forEach(() => L.push(''));
+            go();
+        }
+
+        const scenes = [];
+
+        scenes[0] = function(el) {
+            const L = [];
+            L.push('<span style="text-align: center; display: block;">           ⛵</span>');
+            L.push('<span style="text-align: center; display: block;">          /|\\</span>');
+            L.push('<span style="text-align: center; display: block;">         / | \\</span>');
+            L.push('<span style="text-align: center; display: block;">        /  |  \\</span>');
+            L.push('<span style="text-align: center; display: block;">       /   |   \\</span>');
+            L.push('<span style="text-align: center; display: block;">      /____|____\\</span>');
+            L.push('<span style="text-align: center; display: block;">~~~~~~~~~~~~~~~</span>');
+            L.push('');
+            el.innerHTML = L.join('\n');
+            t(() => {
+                typeCmd(el, L, 'ship-receipts goal set "Get one project producing revenue"', () => {
+                    const lines = [
+                        '┌─── ITHACA DECLARED ────────────────────────────',
+                        '│',
+                        '│  Goal: "Get one project producing revenue"',
+                        '│  <span class="c-grn">✓ Goal recorded in ship-receipts manifest</span>',
+                        '│',
+                        '└──────────────────────────────────────────────────'
+                    ];
+                    revealLines(el, L, lines, 80, () => {
+                        t(() => {
+                            L.push('');
+                            typeCmd(el, L, 'ship-receipts waypoint "Go for a walk. Watch the sunrise."', () => {
+                                const wayLines = [
+                                    '┌─── WAYPOINT SET ───────────────────────────────',
+                                    '│',
+                                    '│  "Go for a walk. Watch the sunrise."',
+                                    '│',
+                                    '└──────────────────────────────────────────────────'
+                                ];
+                                revealLines(el, L, wayLines, 80, () => {
+                                    t(() => {
+                                        L.push('');
+                                        typeCmd(el, L, 'ship-receipts waypoint --done', () => {
+                                            const doneLines = [
+                                                '<span class="c-grn">✓</span> Waypoint completed: "Go for a walk. Watch the sunrise."',
+                                                '  Duration: 37 minutes.'
+                                            ];
+                                            revealLines(el, L, doneLines, 100, null);
+                                        });
+                                    }, 800);
+                                });
+                            });
+                        }, 600);
+                    });
+                });
+            }, 800);
+        };
+
+        scenes[1] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts waypoint --status', () => {
+                const lines = [
+                    '┌─── MORNING WAYPOINT COMPLETE ──────────────────',
+                    '│',
+                    '│  <span class="c-grn">✓ Go for a walk. Watch the sunrise.</span>',
+                    '│',
+                    '│  You returned at dawn. Coffee is brewing.',
+                    '│  The day is yours to ship.',
+                    '│',
+                    '└──────────────────────────────────────────────────'
+                ];
+                revealLines(el, L, lines, 80, null);
+            });
+        };
+
+        scenes[2] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts init', () => {
+                const receiptLines = [
+                    '┌─── CAPTURING RECEIPT ──────────────────────────',
+                    '│',
+                    '│  Subject .................. ship-receipts landing',
+                    '│  Type ........................... code',
+                    '│  Artifact .... github.com/Spitfire-Cowboy/ship-receipts',
+                    '│  Commit SHA ..................... e7f2a1b...',
+                    '│  Content hash ......... sha256:9c4d3e8f...',
+                    '│  Verify cmd ...... npm run build && npm test',
+                    '│',
+                    '└──────────────────────────────────────────────────'
+                ];
+                revealLines(el, L, receiptLines, 80, () => {
+                    L.push('');
+                    L.push('<span class="c-grn">✓</span> Receipt created: .ship-receipts/receipts/2026-03-01-0830.json');
+                    el.innerHTML = L.join('\n');
+                    t(() => {
+                        L.push('');
+                        typeCmd(el, L, 'ship-receipts score 2026-03-01-0830.json', () => {
+                            const scoreLines = [
+                                '╔═══════════════════════════════════════════════',
+                                '║            RECEIPT SCORED',
+                                '╠═══════════════════════════════════════════════',
+                                '║',
+                                '║  Subject name .............. +1',
+                                '║  Linked profiles ........... +2',
+                                '║  Timestamp ................. +1',
+                                '║  Content hash (SHA-256) .... +3  <span class="c-grn">✓ valid</span>',
+                                '║  Immutable ref ............. +2',
+                                '║  Checksum .................. +3  <span class="c-grn">✓ verified</span>',
+                                '║  Verification command ...... +2',
+                                '║  ─────────────────────────────────────────────',
+                                '║  Base score .......................... 14',
+                                '║',
+                                '║  5-day streak ..................... ×1.25',
+                                '║  Integrity bonus ................... ×1.50',
+                                '║',
+                                '║  ═════════════════════════════════════════════',
+                                '║       FINAL SCORE:    <span class="c-mag">{{N}}</span>',
+                                '║  ═════════════════════════════════════════════',
+                                '║',
+                                '╚═══════════════════════════════════════════════'
+                            ];
+                            revealLines(el, L, scoreLines, 60, () => {
+                                t(() => {
+                                    const scoreIdx = L.length - 6;
+                                    const template = '║       FINAL SCORE:    <span class="c-mag">{{N}}</span>';
+                                    countUp(el, L, scoreIdx, template, 26, () => {
+                                        L.push('');
+                                        L.push('<span class="c-red">🔥 5-day streak! Momentum is real.</span>');
+                                        el.innerHTML = L.join('\n');
+                                    });
+                                }, 500);
+                            });
+                        });
+                    }, 600);
+                });
+            });
+        };
+
+        scenes[3] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts compass', () => {
+                const compassLines = [
+                    '┌─── 🧭 COMPASS ────────────────────────────────',
+                    '│',
+                    '│  Ithaca: "Get one project producing revenue."',
+                    '│  Today: ship-receipts landing page',
+                    '│',
+                    '│  ── Reflection ─────────────────────────────'
+                ];
+                revealLines(el, L, compassLines, 80, () => {
+                    L.push('│');
+                    el.innerHTML = L.join('\n');
+                    t(() => {
+                        const reflection = 'A landing page. Your first artifact facing outward.\n\nDon\'t describe the product you wish it was.\nDescribe what it is today, right now.\n\nOne sentence: "ship-receipts is a game\nthat proves you shipped." If someone\nreads that and wants to play, you\'re\npointed at your goal.';
+                        streamText(el, L, reflection, '│  ', () => {
+                            L.push('│');
+                            L.push('│  Bearing: <span class="c-amb">◉ correcting</span> · toward Ithaca');
+                            L.push('│');
+                            L.push('└──────────────────────────────────────────────');
+                            el.innerHTML = L.join('\n');
+                        });
+                    }, 400);
+                });
+            });
+        };
+
+        scenes[4] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts waypoint "Have coffee with Sam. Talk strategy."', () => {
+                const waypointLines = [
+                    '┌─── WAYPOINT SET ───────────────────────────────',
+                    '│',
+                    '│  "Have coffee with Sam. Talk strategy."',
+                    '│',
+                    '│  Conversations are waypoints too.',
+                    '│',
+                    '└──────────────────────────────────────────────────'
+                ];
+                revealLines(el, L, waypointLines, 100, () => {
+                    t(() => {
+                        L.push('');
+                        typeCmd(el, L, 'ship-receipts waypoint --done', () => {
+                            const doneLines = [
+                                '<span class="c-grn">✓</span> Waypoint completed: "Have coffee with Sam. Talk strategy."',
+                                '  Duration: 45 minutes.',
+                                '',
+                                '  Sam said: "I\'d use this." — <span class="c-amb">Signal received.</span>'
+                            ];
+                            revealLines(el, L, doneLines, 100, () => {
+                                t(() => {
+                                    L.push('');
+                                    typeCmd(el, L, 'ship-receipts init', () => {
+                                        const pricingLines = [
+                                            '┌─── CAPTURING RECEIPT ──────────────────────────',
+                                            '│',
+                                            '│  Subject .................. Pricing strategy v1',
+                                            '│  Type .......................... document',
+                                            '│  Artifact ............. notion.so/pro777/pricing',
+                                            '│  Content hash ......... sha256:2b8f4a1e...',
+                                            '│',
+                                            '└──────────────────────────────────────────────────'
+                                        ];
+                                        revealLines(el, L, pricingLines, 80, () => {
+                                            L.push('');
+                                            L.push('<span class="c-grn">✓</span> Receipt created: .ship-receipts/receipts/2026-03-01-1215.json');
+                                            el.innerHTML = L.join('\n');
+                                        });
+                                    });
+                                }, 800);
+                            });
+                        });
+                    }, 1000);
+                });
+            });
+        };
+
+        scenes[5] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts score 2026-03-01-1215.json', () => {
+                const scoreLines = [
+                    '╔═══════════════════════════════════════════════',
+                    '║            RECEIPT SCORED',
+                    '╠═══════════════════════════════════════════════',
+                    '║',
+                    '║  Subject name .............. +1',
+                    '║  Linked profiles ........... +2',
+                    '║  Timestamp ................. +1',
+                    '║  Content hash (SHA-256) .... +3  <span class="c-grn">✓ valid</span>',
+                    '║  ─────────────────────────────────────────────',
+                    '║  Base score .......................... 7',
+                    '║',
+                    '║  5-day streak ..................... ×1.25',
+                    '║  Integrity bonus ................... ×1.50',
+                    '║',
+                    '║  ═════════════════════════════════════════════',
+                    '║       FINAL SCORE:    <span class="c-mag">{{N}}</span>',
+                    '║  ═════════════════════════════════════════════',
+                    '║',
+                    '╚═══════════════════════════════════════════════'
+                ];
+                revealLines(el, L, scoreLines, 60, () => {
+                    t(() => {
+                        const scoreIdx = L.length - 6;
+                        const template = '║       FINAL SCORE:    <span class="c-mag">{{N}}</span>';
+                        countUp(el, L, scoreIdx, template, 13, () => {
+                            L.push('');
+                            L.push('<span class="c-wht">Lower proof depth. No CI. But real work.</span>');
+                            el.innerHTML = L.join('\n');
+                        });
+                    }, 500);
+                });
+            });
+        };
+
+        scenes[6] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts waypoint "Take the kids to the park."', () => {
+                const waypointLines = [
+                    '┌─── WAYPOINT SET ───────────────────────────────',
+                    '│',
+                    '│  "Take the kids to the park."',
+                    '│',
+                    '└──────────────────────────────────────────────────'
+                ];
+                revealLines(el, L, waypointLines, 100, () => {
+                    t(() => {
+                        L.push('');
+                        typeCmd(el, L, 'ship-receipts waypoint --done', () => {
+                            const doneLines = [
+                                '<span class="c-grn">✓</span> Waypoint completed: "Take the kids to the park."',
+                                '  Duration: 90 minutes.',
+                                '',
+                                '  Three kids, one swing set, infinite joy.'
+                            ];
+                            revealLines(el, L, doneLines, 100, () => {
+                                t(() => {
+                                    L.push('');
+                                    typeCmd(el, L, 'ship-receipts init', () => {
+                                        const deployLines = [
+                                            '┌─── CAPTURING RECEIPT ──────────────────────────',
+                                            '│',
+                                            '│  Subject .................. Landing page deploy',
+                                            '│  Type ......................... deployment',
+                                            '│  Target .................... production',
+                                            '│  Commit SHA ..................... f1a3b2c...',
+                                            '│  Content hash ......... sha256:5e9a2f1d...',
+                                            '│  CI link ......... github.com/Spitfire-Cowboy/ship/.../123',
+                                            '│  CI status ....................... PASSED',
+                                            '│',
+                                            '└──────────────────────────────────────────────────'
+                                        ];
+                                        revealLines(el, L, deployLines, 80, () => {
+                                            L.push('');
+                                            L.push('<span class="c-grn">✓</span> Receipt created: .ship-receipts/receipts/2026-03-01-1645.json');
+                                            el.innerHTML = L.join('\n');
+                                        });
+                                    });
+                                }, 800);
+                            });
+                        });
+                    }, 1000);
+                });
+            });
+        };
+
+        scenes[7] = function(el) {
+            const L = [];
+            typeCmd(el, L, 'ship-receipts score 2026-03-01-1645.json', () => {
+                const scoreLines = [
+                    '╔═══════════════════════════════════════════════',
+                    '║            RECEIPT SCORED',
+                    '╠═══════════════════════════════════════════════',
+                    '║',
+                    '║  Subject name .............. +1',
+                    '║  Linked profiles ........... +2',
+                    '║  Timestamp ................. +1',
+                    '║  Content hash (SHA-256) .... +3  <span class="c-grn">✓ valid</span>',
+                    '║  Immutable ref ............. +2',
+                    '║  Checksum .................. +3  <span class="c-grn">✓ verified</span>',
+                    '║  CI link ................... +1',
+                    '║  Verification command ...... +2',
+                    '║  ─────────────────────────────────────────────',
+                    '║  Base score .......................... 15',
+                    '║',
+                    '║  5-day streak ..................... ×1.25',
+                    '║  Integrity bonus ................... ×1.50',
+                    '║',
+                    '║  ═════════════════════════════════════════════',
+                    '║       FINAL SCORE:    <span class="c-mag">{{N}}</span>',
+                    '║  ═════════════════════════════════════════════',
+                    '║',
+                    '╚═══════════════════════════════════════════════'
+                ];
+                revealLines(el, L, scoreLines, 60, () => {
+                    t(() => {
+                        const scoreIdx = L.length - 6;
+                        const template = '║       FINAL SCORE:    <span class="c-mag">{{N}}</span>';
+                        countUp(el, L, scoreIdx, template, 28, () => {
+                            t(() => {
+                                L.push('');
+                                typeCmd(el, L, 'ship-receipts compass', () => {
+                                    const compassLines = [
+                                        '┌─── 🧭 COMPASS ────────────────────────────────',
+                                        '│',
+                                        '│  Ithaca: "Get one project producing revenue."',
+                                        '│  Today: Landing page is live.',
+                                        '│',
+                                        '│  ── Final Word ──────────────────────────────'
+                                    ];
+                                    revealLines(el, L, compassLines, 80, () => {
+                                        L.push('│');
+                                        el.innerHTML = L.join('\n');
+                                        t(() => {
+                                            const finalWords = 'You launched. It\'s public. Real people\ncan see it now. This is the hardest\nstep for most makers.\n\nNow share it. Not to Product Hunt.\nShare with one person you respect.\nOne real conversation. Ask for\ntheir honest thought.\n\nThat conversation is where revenue\nbegins. Not in the pricing model.\nIn trust.';
+                                            streamText(el, L, finalWords, '│  ', () => {
+                                                L.push('│');
+                                                L.push('│  Bearing: <span class="c-amb">◉ locked on</span> · voyage continues');
+                                                L.push('│');
+                                                L.push('└──────────────────────────────────────────────');
+                                                el.innerHTML = L.join('\n');
+                                                t(() => {
+                                                    L.push('');
+                                                    typeCmd(el, L, 'ship-receipts export --to proofofship 2026-03-01-1645.json', () => {
+                                                        const exportLines = [
+                                                            '┌─── VOYAGE RECORDED ────────────────────────────',
+                                                            '│',
+                                                            '│  → proofofship.com/verify',
+                                                            '│',
+                                                            '│  <span class="c-grn">✓ Submission exists</span> (public ledger)',
+                                                            '│  <span class="c-grn">✓ Push rights confirmed</span>',
+                                                            '│  <span class="c-grn">✓ Content hash matches</span>',
+                                                            '│  <span class="c-grn">✓ CI status: PASSED</span>',
+                                                            '│',
+                                                            '│  Verification depth: 0.88 / 1.00',
+                                                            '│  [▓▓▓▓▓▓▓▓▓▓▓▓▓░░]',
+                                                            '│',
+                                                            '│  Published: proofofship.com/u/pro777',
+                                                            '│  Rank: #142 ↑ 18',
+                                                            '│',
+                                                            '│  "Your journey is now written in stone."',
+                                                            '│',
+                                                            '└──────────────────────────────────────────────'
+                                                        ];
+                                                        revealLines(el, L, exportLines, 80, () => {
+                                                            t(() => {
+                                                                L.push('');
+                                                                typeCmd(el, L, 'ship-receipts voyage', () => {
+                                                                    const voyageLines = [
+                                                                        '┌─── VOYAGE SUMMARY ────────────────────────────',
+                                                                        '│',
+                                                                        '│  Ithaca: "Get one project producing revenue."',
+                                                                        '│  Day 23 · Streak: 5 days <span class="c-red">🔥</span>',
+                                                                        '│',
+                                                                        '│  ── Today\'s Receipts ──────────────────────',
+                                                                        '│',
+                                                                        '│  <span class="c-grn">✓ Landing page</span> ................... 26 pts',
+                                                                        '│  <span class="c-grn">✓ Pricing strategy</span> ............. 13 pts',
+                                                                        '│  <span class="c-grn">✓ Live deployment</span> ............. 28 pts',
+                                                                        '│  │                                  ────────',
+                                                                        '│  │  Today total: <span class="c-amb">67 pts</span>',
+                                                                        '│',
+                                                                        '│  Waypoints completed: 3/3',
+                                                                        '│    <span class="c-grn">✓ Morning walk. Sunrise.</span>',
+                                                                        '│    <span class="c-grn">✓ Coffee with Sam.</span>',
+                                                                        '│    <span class="c-grn">✓ Park with the kids.</span>',
+                                                                        '│',
+                                                                        '│  ── Statistics ────────────────────────────────',
+                                                                        '│',
+                                                                        '│  Cumulative: 412 pts · 23 receipts · Avg: 17.9',
+                                                                        '│',
+                                                                        '│  Achievements:',
+                                                                        '│    ✦ First receipt ........... Day 1',
+                                                                        '│    ✦ 5-day streak ........... Day 19 (now active)',
+                                                                        '│    ○ Weekly streak .......... —',
+                                                                        '│    ○ Monthly streak ......... —',
+                                                                        '│',
+                                                                        '└──────────────────────────────────────────────'
+                                                                    ];
+                                                                    revealLines(el, L, voyageLines, 60, () => {
+                                                                        L.push('');
+                                                                        L.push('<span style="text-align: center; display: block;">Safe harbor, sailor. Rest well.</span>');
+                                                                        el.innerHTML = L.join('\n');
+                                                                        t(() => {
+                                                                            L.push('');
+                                                                            L.push('<span style="text-align: center; display: block;">           ⛵</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">          /|\\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">         / | \\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">        /  |  \\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">       /   |   \\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">      /____|____\\</span>');
+                                                                            L.push('<span style="text-align: center; display: block;">       ODYSSEY</span>');
+                                                                            el.innerHTML = L.join('\n');
+                                                                        }, 400);
+                                                                    });
+                                                                });
+                                                            }, 600);
+                                                        });
+                                                    });
+                                                }, 400);
+                                            });
+                                        }, 400);
+                                    });
+                                });
+                            }, 500);
+                        });
+                    }, 500);
+                });
+            });
+        };
+
+        function goToSlide(n) {
+            if (n >= totalSlides) {
+                currentSlide = totalSlides - 1;
+            } else if (n < 0) {
+                currentSlide = 0;
+            } else {
+                currentSlide = n;
+            }
+
+            clearAll();
+
+            let slideEl = document.getElementById('slide-' + currentSlide);
+            if (!slideEl) {
+                const container = document.getElementById('slidesContainer');
+                slideEl = document.createElement('pre');
+                slideEl.id = 'slide-' + currentSlide;
+                container.appendChild(slideEl);
+            }
+
+            const allSlides = document.querySelectorAll('#slidesContainer pre');
+            allSlides.forEach((slide, idx) => {
+                slide.classList.toggle('active', idx === currentSlide);
+            });
+
+            scenes[currentSlide](slideEl);
+
+            updateDots();
+
+            document.getElementById('sceneCounter').textContent = `Scene ${currentSlide + 1} of ${totalSlides}`;
+
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+
+            if (isAutoAdvancing) {
+                resetAutoAdvanceTimer();
+            }
+
+            if (currentSlide === totalSlides - 1 && isAutoAdvancing) {
+                clearTimeout(autoAdvanceTimer);
+                isAutoAdvancing = false;
+                updateAutoStatus();
+            }
+        }
+
+        function nextSlide() {
+            goToSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(currentSlide - 1);
+        }
+
+        function resetAutoAdvanceTimer() {
+            clearTimeout(autoAdvanceTimer);
+            const timerFill = document.getElementById('timerFill');
+            timerFill.classList.remove('animating');
+
+            if (isAutoAdvancing && currentSlide < totalSlides - 1) {
+                setTimeout(() => {
+                    timerFill.classList.add('animating');
+                }, 10);
+
+                autoAdvanceTimer = setTimeout(() => {
+                    goToSlide(currentSlide + 1);
+                }, 10000);
+            }
+        }
+
+        function toggleAutoAdvance() {
+            isAutoAdvancing = !isAutoAdvancing;
+            updateAutoStatus();
+            if (isAutoAdvancing && currentSlide < totalSlides - 1) {
+                resetAutoAdvanceTimer();
+            } else {
+                clearTimeout(autoAdvanceTimer);
+                document.getElementById('timerFill').classList.remove('animating');
+            }
+        }
+
+        function updateAutoStatus() {
+            const autoStatus = document.getElementById('autoStatus');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+
+            if (isAutoAdvancing) {
+                autoStatus.innerHTML = '<span class="status-icon">▶</span> <span>AUTO</span>';
+                playPauseBtn.textContent = '⏸ Pause';
+                autoStatus.classList.remove('paused');
+            } else {
+                autoStatus.innerHTML = '<span class="status-icon">⏸</span> <span>Paused</span>';
+                playPauseBtn.textContent = '▶ Resume';
+                autoStatus.classList.add('paused');
+            }
+        }
+
+        function updateDots() {
+            const container = document.getElementById('dotsContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('button');
+                dot.className = 'dot-btn';
+                if (i === currentSlide) dot.classList.add('active');
+                dot.onclick = () => goToSlide(i);
+                container.appendChild(dot);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevSlide();
+            else if (e.key === 'ArrowRight') nextSlide();
+            else if (e.key === ' ') {
+                e.preventDefault();
+                toggleAutoAdvance();
+            }
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', prevSlide);
+        document.getElementById('nextBtn').addEventListener('click', nextSlide);
+        document.getElementById('playPauseBtn').addEventListener('click', toggleAutoAdvance);
+
+        updateDots();
+        goToSlide(0);
+    </script>
+</body>
+</html>

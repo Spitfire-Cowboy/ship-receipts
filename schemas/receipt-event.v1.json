@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://proofofship.com/schemas/receipt-event.v1.json",
+  "title": "Receipt Event v1",
+  "description": "Tracks lifecycle state changes as a receipt moves from local creation through global verification. Powers UX state machines.",
+  "type": "object",
+  "required": ["event_id", "event_type", "content_hash", "timestamp", "source"],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "ULID for this event."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "receipt.created",
+        "receipt.validated",
+        "receipt.scored",
+        "envelope.exported",
+        "envelope.submitted",
+        "envelope.accepted",
+        "envelope.rejected",
+        "envelope.verified"
+      ],
+      "description": "Lifecycle event type."
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Links this event to a specific receipt by its content hash."
+    },
+    "envelope_id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Links this event to a specific envelope. Present for envelope.* events."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this event occurred."
+    },
+    "source": {
+      "type": "string",
+      "enum": ["local", "global"],
+      "description": "Whether this event originated locally (ship-receipts) or globally (proofofship)."
+    },
+    "detail": {
+      "type": "object",
+      "description": "Event-specific payload.",
+      "properties": {
+        "reason": { "type": "string", "description": "Rejection or failure reason." },
+        "error_code": {
+          "type": "string",
+          "enum": [
+            "E_PARSE", "E_SCHEMA", "E_HASH_MISSING", "E_HASH_INVALID",
+            "E_SUBJECT", "E_NO_GITHUB", "E_NO_ARTIFACT", "W_DUPLICATE",
+            "E_IDENTITY", "E_DEDUP", "E_ARTIFACT_MISSING"
+          ],
+          "description": "Machine-readable failure code."
+        },
+        "verification_depth": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Proofofship verification depth (0.0-1.0). Present for envelope.verified."
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Final score assigned. Present for receipt.scored."
+        },
+        "base_score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Base score before multipliers."
+        },
+        "streak_days": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Streak length at time of scoring."
+        },
+        "pipeline_version": {
+          "type": "string",
+          "description": "Proofofship verification pipeline version."
+        },
+        "stages": {
+          "type": "object",
+          "description": "Per-stage verification results from proofofship pipeline.",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "pass": { "type": "boolean" },
+              "reason": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "actor": {
+      "type": "string",
+      "description": "Who or what triggered this event (username, tool name, system)."
+    }
+  },
+  "additionalProperties": false
+}

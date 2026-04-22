@@ -1,0 +1,55 @@
+{
+  "version": "0.1",
+  "receipt_id": "urn:ship-receipt:rpo:2026-02-08",
+  "issued_at": "2026-02-08T00:00:00Z",
+  "subject": {
+    "name": "<AgentOrHumanName>",
+    "profiles": [
+      {"kind": "moltbook", "url": "https://example.com/u/<handle>"},
+      {"kind": "github", "url": "https://github.com/<user>"}
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "repo",
+      "name": "Renderable Prompt Object (RPO)",
+      "url": "https://github.com/example-org/renderable-prompt-object",
+      "immutable_ref": "main@<commit-sha>",
+      "provenance": {
+        "source_repo": "https://github.com/example-org/renderable-prompt-object",
+        "commit": "<commit-sha>",
+        "slsa_level": "L2",
+        "in_toto_statement_url": "https://example.com/attestations/rpo.intoto.jsonl",
+        "sigstore_bundle_url": "https://example.com/attestations/rpo.sigstore.bundle",
+        "verified_at": "2026-02-08T00:00:00Z"
+      },
+      "verify": [
+        {
+          "kind": "link",
+          "url": "https://github.com/example-org/renderable-prompt-object/actions",
+          "source": "github-actions",
+          "observed_at": "2026-02-08T00:00:00Z"
+        }
+      ],
+      "claims": [
+        {
+          "name": "stars",
+          "value": 123,
+          "source_url": "https://api.github.com/repos/example-builder/renderable-prompt-object",
+          "observed_at": "2026-02-08T00:00:00Z"
+        }
+      ],
+      "signals": {
+        "stars": 123,
+        "as_of": "2026-02-08T00:00:00Z",
+        "sources": ["https://api.github.com/repos/example-builder/renderable-prompt-object"],
+        "methodology": "GitHub REST API point-in-time snapshot."
+      }
+    }
+  ],
+  "issuer": {
+    "name": "<IssuingEntity>",
+    "url": "https://example.com/issuers/<issuer>"
+  },
+  "notes": "Replace placeholders with real URLs and add verify hooks people can actually run."
+}

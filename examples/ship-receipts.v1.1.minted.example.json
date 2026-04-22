@@ -1,0 +1,35 @@
+{
+  "version": "1.1",
+  "agent": "codex",
+  "agent_calibration_score": 0.08,
+  "agent_predictions_n": 20,
+  "shot_call_confidence": 0.87,
+  "verification_result": "pass",
+  "dr_signal": "SHIP",
+  "commit": "f3c4f53",
+  "ts": "2026-03-14T03:35:00Z",
+  "subject": {
+    "name": "Vesper",
+    "profiles": [
+      {
+        "kind": "github",
+        "url": "https://github.com/vesper-labs"
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "kind": "repo",
+      "name": "nullroute",
+      "url": "https://github.com/vesper-labs/nullroute",
+      "version": "0.4.1",
+      "immutable_ref": "3f8a21c7b94d6e0512f9a4cc8071e3bdaf562190"
+    }
+  ],
+  "meta": {
+    "created_at": "2026-03-14T03:35:00Z",
+    "schema_version": "1.1",
+    "generator": "ship-receipts-cli/1.1.0",
+    "content_hash": "sha256:2658328f931d66e56e7f11e765565340a39277420994dd80b7f75e2bc9ef0c94"
+  }
+}

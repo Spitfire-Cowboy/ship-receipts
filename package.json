@@ -1,0 +1,60 @@
+{
+  "name": "ship-receipts",
+  "version": "0.1.0",
+  "description": "Local scoring engine and proof-envelope exporter for ship receipts.",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/Spitfire-Cowboy/ship-receipts#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Spitfire-Cowboy/ship-receipts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Spitfire-Cowboy/ship-receipts/issues"
+  },
+  "keywords": [
+    "cli",
+    "json-schema",
+    "provenance",
+    "receipts",
+    "verification"
+  ],
+  "type": "module",
+  "bin": {
+    "ship-receipts": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "schema",
+    "schemas",
+    "examples",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src-ts/cli.ts --format esm --dts --clean",
+    "check:examples": "bash scripts/check-example-anonymization.sh",
+    "check:public-export": "bash scripts/check-public-export-safety.sh",
+    "pack:dry-run": "npm pack --dry-run",
+    "runway:build": "node dist/cli.js runway build --from-git --days 3650 --output-dir .runway",
+    "runway:examples": "node dist/cli.js runway build --receipts-dir examples --output-dir .runway-examples",
+    "runway:examples:preview": "node dist/cli.js runway preview --receipts-dir examples --output-dir .runway-examples-preview",
+    "runway:preview": "node dist/cli.js runway preview --from-git --days 3650 --output-dir .runway-preview",
+    "test": "vitest run",
+    "presmoke:ts": "npm run build",
+    "smoke:ts": "node --enable-source-maps scripts-ts/smoke.ts",
+    "prepublishOnly": "npm run build && npm run test && npm run check:public-export && npm run check:examples && npm run pack:dry-run"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ulid": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}
