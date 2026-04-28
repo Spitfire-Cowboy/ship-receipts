@@ -38,6 +38,31 @@
         text-underline-offset: 0.2em;
       }
 
+      a:focus-visible,
+      input:focus-visible,
+      button:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: 16px;
+        top: 12px;
+        z-index: 10;
+        transform: translateY(-160%);
+        border-radius: 6px;
+        background: var(--accent);
+        color: #ffffff;
+        font-weight: 700;
+        padding: 10px 14px;
+        text-decoration: none;
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
       .shell {
         width: min(1120px, calc(100% - 32px));
         margin: 0 auto;
@@ -243,6 +268,7 @@
     </style>
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
     <header>
       <nav class="shell" aria-label="Primary navigation">
         <div class="brand">Ship Receipts</div>
@@ -254,7 +280,7 @@
       </nav>
     </header>
 
-    <main>
+    <main id="main" tabindex="-1">
       <section class="shell hero">
         <div>
           <h1>Ship Receipts</h1>
@@ -267,8 +293,8 @@
             <a class="button" href="docs/game-mode.html">See the game layer</a>
           </div>
         </div>
-        <div class="terminal" aria-label="Install command">
-          <div class="terminal-bar">
+        <div class="terminal" aria-label="Install and score a receipt with the Ship Receipts CLI">
+          <div class="terminal-bar" aria-hidden="true">
             <span class="dot red"></span>
             <span class="dot yellow"></span>
             <span class="dot green"></span>

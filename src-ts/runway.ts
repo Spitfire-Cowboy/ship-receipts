@@ -415,6 +415,35 @@ export function renderRunwayHtml(): string {
 
     * { box-sizing: border-box; }
 
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid var(--amber);
+      outline-offset: 3px;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: 18px;
+      top: 14px;
+      z-index: 10;
+      transform: translateY(-160%);
+      border-radius: 999px;
+      background: var(--amber);
+      color: #09111c;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 10px 14px;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -497,7 +526,7 @@ export function renderRunwayHtml(): string {
       margin: 8px 0 0;
       font-size: clamp(2.7rem, 6vw, 4.8rem);
       line-height: 0.94;
-      letter-spacing: -0.05em;
+      letter-spacing: 0;
       max-width: 9ch;
     }
 
@@ -573,7 +602,7 @@ export function renderRunwayHtml(): string {
       font-size: clamp(2rem, 4vw, 3rem);
       line-height: 1;
       margin: 10px 0 0;
-      letter-spacing: -0.05em;
+      letter-spacing: 0;
     }
 
     .controls {
@@ -611,7 +640,8 @@ export function renderRunwayHtml(): string {
       cursor: pointer;
     }
 
-    .filter-chip.is-active {
+    .filter-chip.is-active,
+    .filter-chip[aria-pressed="true"] {
       background: linear-gradient(135deg, rgba(143, 211, 255, 0.2), rgba(255, 180, 87, 0.14));
       color: var(--text);
     }
@@ -778,13 +808,14 @@ export function renderRunwayHtml(): string {
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#timeline">Skip to receipts</a>
   <main>
-    <header class="shell" aria-label="Runway navigation">
+    <header class="shell">
       <a class="brand" href="https://github.com/Spitfire-Cowboy/ship-receipts">
         <span class="mark" aria-hidden="true"></span>
         <span>ship-receipts runway</span>
       </a>
-      <span class="chip" id="feed-label">loading runway feed</span>
+      <span class="chip" id="feed-label" role="status" aria-live="polite">loading runway feed</span>
     </header>
 
     <section class="hero">
@@ -825,25 +856,25 @@ export function renderRunwayHtml(): string {
       </section>
     </section>
 
-    <section class="panel controls">
+    <section class="panel controls" aria-labelledby="filters-title">
       <div class="controls-head">
-        <p class="section-label">Filter runway</p>
-        <span class="chip" id="results-label">0 visible</span>
+        <p class="section-label" id="filters-title">Filter runway</p>
+        <span class="chip" id="results-label" role="status" aria-live="polite">0 visible</span>
       </div>
-      <div class="filters" id="project-filters"></div>
-      <input class="search" id="runway-search" type="search" placeholder="summary, work id, artifact, actor" />
+      <div class="filters" id="project-filters" aria-label="Project filters"></div>
+      <input class="search" id="runway-search" type="search" placeholder="summary, work id, artifact, actor" aria-label="Search receipts by summary, work id, artifact, or actor" aria-controls="timeline" />
     </section>
 
-    <section class="panel pagination" id="pagination" hidden>
-      <span class="pagination-meta" id="pagination-meta">Page 1 of 1</span>
+    <section class="panel pagination" id="pagination" aria-label="Runway pagination" hidden>
+      <span class="pagination-meta" id="pagination-meta" aria-live="polite">Page 1 of 1</span>
       <div class="pagination-actions">
         <button class="pagination-button" id="pagination-prev" type="button">Previous</button>
         <button class="pagination-button" id="pagination-next" type="button">Next</button>
       </div>
     </section>
 
-    <section class="timeline" id="timeline"></section>
-    <section class="empty-state" id="empty-state" hidden>
+    <section class="timeline" id="timeline" aria-label="Receipt timeline" aria-live="polite" aria-busy="true" tabindex="-1"></section>
+    <section class="empty-state" id="empty-state" role="status" aria-live="polite" hidden>
       No runway matches this filter. Clear search or switch projects.
     </section>
 
@@ -1007,13 +1038,15 @@ export function renderRunwayHtml(): string {
         });
 
         var projects = Object.keys(counts).sort();
+        var allActive = state.project === 'all';
         var chips = [
-          '<button class="filter-chip' + (state.project === 'all' ? ' is-active' : '') + '" data-project="all" type="button">All <span>' + state.receipts.length + '</span></button>'
+          '<button class="filter-chip' + (allActive ? ' is-active' : '') + '" data-project="all" type="button" aria-pressed="' + String(allActive) + '" aria-controls="timeline">All <span>' + state.receipts.length + '</span></button>'
         ];
 
         projects.forEach(function (project) {
+          var isActive = state.project === project;
           chips.push(
-            '<button class="filter-chip' + (state.project === project ? ' is-active' : '') + '" data-project="' + escapeHtml(project) + '" type="button">' +
+            '<button class="filter-chip' + (isActive ? ' is-active' : '') + '" data-project="' + escapeHtml(project) + '" type="button" aria-pressed="' + String(isActive) + '" aria-controls="timeline">' +
               escapeHtml(titleCase(project)) + ' <span>' + String(counts[project]) + '</span>' +
             '</button>'
           );
@@ -1057,6 +1090,7 @@ export function renderRunwayHtml(): string {
       function renderTimeline(pageItems) {
         if (!pageItems.length) {
           timeline.innerHTML = '';
+          timeline.setAttribute('aria-busy', 'false');
           emptyState.hidden = false;
           return;
         }
@@ -1081,7 +1115,7 @@ export function renderRunwayHtml(): string {
             var links = [];
             if (item.pr) {
               var prHref = safeHttpUrl(item.pr);
-              if (prHref) links.push('<a href="' + prHref + '" target="_blank" rel="noreferrer noopener">GitHub link</a>');
+              if (prHref) links.push('<a href="' + prHref + '" target="_blank" rel="noreferrer noopener">GitHub link for ' + escapeHtml(item.summary || item.workId) + '</a>');
             }
             if (item.commit) links.push('<span>commit ' + escapeHtml(shortCommit(item.commit)) + '</span>');
             links.push('<span>' + escapeHtml(item.receiptId) + '</span>');
@@ -1120,9 +1154,11 @@ export function renderRunwayHtml(): string {
             '</section>'
           );
         }).join('');
+        timeline.setAttribute('aria-busy', 'false');
       }
 
       function render() {
+        timeline.setAttribute('aria-busy', 'true');
         var visible = getVisibleReceipts();
         var paginationState = paginate(visible);
         renderFilters();
@@ -1172,6 +1208,7 @@ export function renderRunwayHtml(): string {
         .catch(function (error) {
           feedLabel.textContent = 'feed unavailable';
           timeline.innerHTML = '';
+          timeline.setAttribute('aria-busy', 'false');
           emptyState.hidden = false;
           emptyState.textContent = 'Could not load the runway feed: ' + error.message;
         });
