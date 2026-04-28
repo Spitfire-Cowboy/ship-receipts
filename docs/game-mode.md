@@ -27,6 +27,31 @@ have shipped UI screenshots yet.
 | Render manifest | [![Render manifest mode](./assets/game-mode-render.png)](./assets/game-mode-render.png) |
 | Runway export | [![Runway export mode](./assets/game-mode-runway-build.png)](./assets/game-mode-runway-build.png) |
 
+## Screen reader notes
+
+The game layer is CLI-first. Every runnable mode prints plain text, and the
+structured modes also support JSON output where it is useful for automation.
+
+Text equivalents for the screenshots:
+
+| Mode | Text equivalent |
+| --- | --- |
+| Score | Shows receipt path, subject, accepted/rejected status, base score, streak multiplier, integrity bonus, final score, current streak, and total score. |
+| Streak | Shows current streak days, longest streak, start date, last qualifying receipt date, multiplier, total score, and the next streak tier. |
+| Daily dashboard | Shows current time, streak, multiplier, total score, receipt count, declared Ithaca goal if present, and today's recent receipts. |
+| Simulation | Shows processed receipt count, accepted/rejected/duplicate counts, final score, current streak, longest streak, and milestone events. |
+| Render manifest | Shows where the render manifest was written, the selected preset, asset path, and attached receipt path if one was written. |
+| Runway export | Shows export directory, generated HTML path, generated feed path, receipt count, and skipped unsupported receipts if any. |
+
+For screen readers, prefer append-only watch output so terminal history is not
+cleared on every refresh:
+
+```bash
+ship-receipts daily --watch --no-clear
+```
+
+`--screen-reader` is accepted as an alias for `--no-clear`.
+
 ## Replay historical receipts
 
 Run a dry simulation over receipts you already have:

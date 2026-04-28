@@ -43,7 +43,7 @@ Usage:
   ship-receipts goal status
   ship-receipts goal complete
   ship-receipts wellness [--json]
-  ship-receipts daily [--watch] [--interval <seconds>]
+  ship-receipts daily [--watch] [--interval <seconds>] [--no-clear]
   ship-receipts simulate [<receipt.json> ...] [--receipts-dir <dir>] [--json]
   ship-receipts runway build [<receipt.json> ...] [--receipts-dir <dir>] [--feed <receipts.json>] [--from-git] [--days <n>] [--limit <n>] [--author <name>] [--output-dir <dir>]
   ship-receipts runway preview [<receipt.json> ...] [--receipts-dir <dir>] [--feed <receipts.json>] [--from-git] [--days <n>] [--limit <n>] [--author <name>] [--output-dir <dir>] [--host <host>] [--port <n>]`;
@@ -1550,6 +1550,7 @@ function renderDailyDashboard(state: any, receiptsToday: number, streakDays: num
 
 async function cmdDaily(argv: string[]): Promise<number> {
   const watchMode = argv.includes("--watch");
+  const noClear = argv.includes("--no-clear") || argv.includes("--screen-reader");
   const intervalIdx = argv.indexOf("--interval");
   const intervalSec = intervalIdx !== -1 ? parseInt(argv[intervalIdx + 1] ?? "5", 10) : 5;
 
@@ -1562,8 +1563,10 @@ async function cmdDaily(argv: string[]): Promise<number> {
     ).length;
     const streakDays: number = state.streak?.current ?? 0;
 
-    if (watchMode) {
+    if (watchMode && !noClear) {
       process.stdout.write("\x1b[2J\x1b[H"); // clear screen
+    } else if (watchMode && noClear) {
+      console.log("");
     }
     console.log(renderDailyDashboard(state, receiptsToday, streakDays));
   };
@@ -1578,7 +1581,7 @@ async function cmdDaily(argv: string[]): Promise<number> {
   await new Promise<void>((resolve) => {
     process.on("SIGINT", () => {
       clearInterval(timer);
-      process.stdout.write("\x1b[2J\x1b[H"); // clear on exit
+      if (!noClear) process.stdout.write("\x1b[2J\x1b[H"); // clear on exit
       console.log("  Goodbye.");
       resolve();
     });

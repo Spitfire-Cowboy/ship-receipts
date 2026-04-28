@@ -556,6 +556,27 @@ describe("ts cli", () => {
     }
   });
 
+  it("daily watch supports a no-clear mode for screen readers", async () => {
+    const root = await mkdtemp(join(tmpdir(), "sr-ts-daily-a11y-"));
+    const old = process.cwd();
+    const write = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    try {
+      process.chdir(root);
+      const run = main(["daily", "--watch", "--no-clear", "--interval", "999"]);
+      setTimeout(() => process.emit("SIGINT"), 0);
+      const code = await run;
+      expect(code).toBe(0);
+      expect(write).not.toHaveBeenCalledWith("\x1b[2J\x1b[H");
+      expect(log.mock.calls.some((call) => String(call[0]).includes("ship-receipts daily"))).toBe(true);
+    } finally {
+      write.mockRestore();
+      log.mockRestore();
+      process.chdir(old);
+    }
+  });
+
   it("wellness returns zero receipts in fresh state", async () => {
     const root = await mkdtemp(join(tmpdir(), "sr-ts-wellness-"));
     const old = process.cwd();
