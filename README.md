@@ -1,12 +1,12 @@
 # Ship Receipts
 
-Ship Receipts is a CLI and schema for producing machine-readable records of shipped work.
+Ship Receipts is a CLI and JSON schema for recording work you actually shipped.
 
-Each receipt answers four things:
+Each receipt is a small, machine-readable claim:
 - what was shipped
 - where it lives
-- how to verify it
 - who is claiming it
+- how someone else could check it
 
 Homepage: [shipreceipts.com](https://shipreceipts.com)
 Repository: [Spitfire-Cowboy/ship-receipts](https://github.com/Spitfire-Cowboy/ship-receipts)
@@ -14,19 +14,15 @@ Issues: [github.com/Spitfire-Cowboy/ship-receipts/issues](https://github.com/Spi
 
 ## What it does
 
-`ship-receipts` is the local toolchain.
+`ship-receipts` runs locally. It creates receipts, validates them, scores them
+into local state, and can export a static "runway" page from receipts or recent
+git history.
 
-Today it can:
-- create receipts
-- validate receipts
-- score and replay local receipt history
-- export a static runway viewer from receipt feeds or recent git history
-- attach ceremonial render manifests to receipts
+It is not a social network, a badge farm, or a global reputation service. It is
+the local evidence layer. The separate `proofofship` verifier is the global
+layer.
 
-The game-flavored layer is optional. The core product is still the CLI, schemas,
-examples, and runway flow.
-
-## 🛠 Install
+## Install
 
 ```bash
 npx ship-receipts --help
@@ -38,6 +34,39 @@ For local development in this repo:
 npm install
 npm run build
 npm test
+```
+
+## Quick start
+
+Create a receipt:
+
+```bash
+ship-receipts create \
+  --name "ship-receipts" \
+  --kind repo \
+  --url "https://github.com/Spitfire-Cowboy/ship-receipts" \
+  --subject "Example Builder" \
+  --output receipt.json \
+  --hash
+```
+
+Validate it:
+
+```bash
+ship-receipts validate receipt.json
+```
+
+Score it into local state:
+
+```bash
+ship-receipts score receipt.json
+ship-receipts streak
+```
+
+Build a static runway from recent git history:
+
+```bash
+ship-receipts runway build --from-git --days 30 --output-dir .runway
 ```
 
 ## Docs
@@ -56,9 +85,10 @@ Preview:
 <td><a href="docs/assets/runway-mobile-view.png"><img src="docs/assets/runway-mobile-view.png" alt="Ship Receipts runway mobile view" width="240"></a></td>
 </tr></table>
 
-## ⏱️ OpenTimestamps
+## OpenTimestamps
 
-Anchor a receipt digest with OpenTimestamps:
+Receipts can be anchored with OpenTimestamps. This proves a digest existed at a
+point in time. It does not prove the receipt claim is true.
 
 ```bash
 ship-receipts anchor ots receipt.json
@@ -71,30 +101,33 @@ ship-receipts verify ots receipt.json
 pip3 install opentimestamps-client
 ```
 
-## 🔒 Trust boundary
+## Trust boundary
 
 `ship-receipts` records and packages claims locally.
 
-It does **not** independently verify those claims globally. That boundary belongs to
-the separate `proofofship` verifier, which re-checks receipts against the public
-record.
+It does **not** independently verify those claims globally. That boundary belongs
+to the separate `proofofship` verifier, which re-checks receipts against the
+public record.
 
-The one scoped exception is OpenTimestamps anchoring:
-- `anchor ots` and `verify ots` call the external `ots` CLI
-- that verifies timestamp proof linkage for a digest
-- it does not replace global receipt verification
+OpenTimestamps is the scoped exception:
+- `anchor ots` and `verify ots` call the external `ots` CLI.
+- That verifies timestamp proof linkage for a digest.
+- It does not replace global receipt verification.
+
+## Game layer
+
+The game-flavored layer is optional. It includes local scoring, streaks, goals,
+simulation, and ceremonial render manifests. The game should reward better proof,
+not more busywork.
 
 ## Repo layout
 
+- CLI source: [`src-ts/`](src-ts/)
 - schemas: [`schema/`](schema/) and [`schemas/`](schemas/)
 - examples: [`examples/`](examples/)
-- TypeScript CLI source: [`src-ts/`](src-ts/)
-- test suite: [`tests-ts/`](tests-ts/)
-- docs index: [`docs/`](docs/)
-- getting started: [`docs/getting-started.md`](./docs/getting-started.md)
-- runway guide: [`docs/runway.md`](./docs/runway.md)
-- game-mode guide: [`docs/game-mode.md`](./docs/game-mode.md)
-- game-mode status: [`docs/game-mode/README.md`](./docs/game-mode/README.md)
+- TypeScript tests: [`tests-ts/`](tests-ts/)
+- Python reference tests: [`tests/`](tests/)
+- docs: [`docs/`](docs/)
 
 ## License
 
