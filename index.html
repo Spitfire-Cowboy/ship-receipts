@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ship Receipts</title>
+    <meta
+      name="description"
+      content="Local proof receipts for shipped work: score receipts, track streaks, and export a static runway."
+    >
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1b1f24;
+        --muted: #59636e;
+        --line: #d8dee4;
+        --panel: #f6f8fa;
+        --paper: #ffffff;
+        --accent: #1f7a4d;
+        --accent-ink: #0f3d28;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.5;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration-thickness: 0.08em;
+        text-underline-offset: 0.2em;
+      }
+
+      .shell {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      header {
+        border-bottom: 1px solid var(--line);
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        min-height: 72px;
+      }
+
+      .brand {
+        font-size: 1.05rem;
+        font-weight: 750;
+        letter-spacing: 0;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        font-size: 0.95rem;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1.15fr);
+        gap: 44px;
+        align-items: center;
+        padding: 72px 0 48px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 11ch;
+        font-size: clamp(3rem, 9vw, 6.5rem);
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      .lede {
+        max-width: 620px;
+        margin-top: 24px;
+        color: var(--muted);
+        font-size: clamp(1.08rem, 2vw, 1.28rem);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 32px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: var(--ink);
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .button.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #ffffff;
+      }
+
+      .terminal {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #1b222c;
+        box-shadow: 0 16px 40px rgba(27, 31, 36, 0.14);
+      }
+
+      .terminal-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        background: #232c37;
+      }
+
+      .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+      }
+
+      .dot.red { background: #ef6961; }
+      .dot.yellow { background: #f5bf4f; }
+      .dot.green { background: #61c272; }
+
+      pre {
+        margin: 0;
+        padding: 22px;
+        overflow-x: auto;
+        color: #e6edf3;
+        font: 0.95rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      .section {
+        padding: 44px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .section h2 {
+        font-size: clamp(1.6rem, 3vw, 2.35rem);
+        letter-spacing: 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 24px;
+      }
+
+      .item {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 20px;
+        background: var(--panel);
+      }
+
+      .item h3 {
+        font-size: 1rem;
+        letter-spacing: 0;
+      }
+
+      .item p {
+        margin-top: 8px;
+        color: var(--muted);
+      }
+
+      .screens {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.6fr);
+        gap: 18px;
+        align-items: start;
+        margin-top: 24px;
+      }
+
+      img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      footer {
+        padding: 32px 0 48px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+      }
+
+      @media (max-width: 820px) {
+        nav,
+        .nav-links,
+        .actions {
+          align-items: flex-start;
+        }
+
+        nav,
+        .hero,
+        .screens {
+          grid-template-columns: 1fr;
+        }
+
+        nav {
+          display: grid;
+          padding: 18px 0;
+        }
+
+        .hero {
+          padding-top: 48px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="shell" aria-label="Primary navigation">
+        <div class="brand">Ship Receipts</div>
+        <div class="nav-links">
+          <a href="https://github.com/Spitfire-Cowboy/ship-receipts">GitHub</a>
+          <a href="docs/game-mode.html">Game mode</a>
+          <a href="docs/runway.html">Runway</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="shell hero">
+        <div>
+          <h1>Ship Receipts</h1>
+          <p class="lede">
+            A local CLI for turning shipped work into portable proof receipts,
+            scored progress, and a static runway you can publish.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/Spitfire-Cowboy/ship-receipts">View the repo</a>
+            <a class="button" href="docs/game-mode.html">See the game layer</a>
+          </div>
+        </div>
+        <div class="terminal" aria-label="Install command">
+          <div class="terminal-bar">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <pre><code>npm install -g ship-receipts
+ship-receipts create \
+  --name "public release" \
+  --kind release \
+  --url https://github.com/you/project \
+  --subject "you" \
+  --hash
+ship-receipts score public-release.receipt.json</code></pre>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="shell">
+          <h2>Proof, not vibes</h2>
+          <div class="grid">
+            <article class="item">
+              <h3>Receipt first</h3>
+              <p>Record what shipped, who shipped it, where it lives, and how it can be checked.</p>
+            </article>
+            <article class="item">
+              <h3>Local scoring</h3>
+              <p>Score receipts and streaks locally without sending private work to a hosted service.</p>
+            </article>
+            <article class="item">
+              <h3>Static runway</h3>
+              <p>Export a small static site from receipts or git history when you want a public trail.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="shell">
+          <h2>Runway preview</h2>
+          <div class="screens">
+            <a href="docs/assets/runway-desktop-view.png">
+              <img src="docs/assets/runway-desktop-view.png" alt="Ship Receipts runway desktop view">
+            </a>
+            <a href="docs/assets/game-mode-score.png">
+              <img src="docs/assets/game-mode-score.png" alt="Ship Receipts score command output">
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="shell">
+        Apache 2.0. Built for local-first proof workflows.
+      </div>
+    </footer>
+  </body>
+</html>
