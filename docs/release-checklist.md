@@ -6,7 +6,7 @@ Use this checklist when cutting a public release from the current `main` branch.
 
 - Work from a clean checkout of `main`
 - Ensure the intended version and changelog entries are already committed
-- Confirm npm publish credentials and repository secrets are in place
+- Confirm npm publishing is configured for the intended release path
 
 ## Local Verification
 

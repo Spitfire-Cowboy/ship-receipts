@@ -5,9 +5,11 @@
 
 ---
 
-## Status: CODE COMPLETE (v1.0)
+## Status: CODE COMPLETE (historical v1.0 snapshot)
 
-All 10 build order slices implemented and tested. Ready for public repo creation.
+All 10 build order slices were implemented and tested in this historical
+snapshot. The repo has since moved to the public `main` release flow; use the
+current README and release checklist for release state.
 
 ## Test Summary
 
@@ -70,12 +72,11 @@ All 10 build order slices implemented and tested. Ready for public repo creation
 
 ## What's Next
 
-1. **Deploy to staging** — ship-receipts is a CLI tool, no server needed. But the public GitHub repo export needs the allowlist-based `scripts/export-public.sh` run.
+1. **Public release flow** — ship-receipts is a CLI tool, no server needed. Follow the current release checklist from `main`.
 2. **Integrate with proofofship** — `ship-receipts export` produces proof envelopes that proofofship ingests via `POST /api/v1/envelopes`.
 3. **Deep research** — See `proofofship/docs/research/2026-02-26-deep-research-brief.md` for scoring model validation research questions.
 
 ## Infrastructure
 
 - **Domains:** shipreceipts.com, ship-receipts.com (owned, Cloudflare)
-- **Repos:** Pro777/ship-receipts (private, develop branch is source of truth)
-- **Public repo:** Not yet created. Export script ready at `scripts/export-public.sh`.
+- **Repo:** Spitfire-Cowboy/ship-receipts, using `main` as the public release branch

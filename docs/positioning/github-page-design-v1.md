@@ -101,7 +101,7 @@ These are the elements that build credibility with technical visitors:
 - Explicit boundaries (what this does NOT do).
 - Documented abuse vectors and mitigations.
 - Deterministic scoring formula (not "AI-powered" or "smart").
-- MIT license.
+- Apache 2.0 license.
 - CI badge (when CI runs meaningful tests).
 
 ---

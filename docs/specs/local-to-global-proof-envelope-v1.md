@@ -230,13 +230,12 @@ Exported proof envelope to my-receipt.envelope.json
 
 ## 7. Submission to Proofofship
 
-After export, the envelope is submitted via:
+After export, the envelope can be submitted by whatever authenticated client
+proofofship exposes. For example:
 
 ```bash
-$ curl -X POST https://proofofship.com/api/v1/envelopes \
-    -H "Authorization: Bearer <github-oauth-token>" \
-    -H "Content-Type: application/json" \
-    -d @my-receipt.envelope.json
+ship-receipts export my-receipt.json --output my-receipt.envelope.json
+# Submit my-receipt.envelope.json through the configured proofofship client.
 ```
 
 Response:
