@@ -8,10 +8,6 @@ Each receipt is a small, machine-readable claim:
 - who is claiming it
 - how someone else could check it
 
-Homepage: [shipreceipts.com](https://shipreceipts.com)
-Repository: [Spitfire-Cowboy/ship-receipts](https://github.com/Spitfire-Cowboy/ship-receipts)
-Issues: [github.com/Spitfire-Cowboy/ship-receipts/issues](https://github.com/Spitfire-Cowboy/ship-receipts/issues)
-
 ## What it does
 
 `ship-receipts` runs locally. It creates receipts, validates them, scores them
