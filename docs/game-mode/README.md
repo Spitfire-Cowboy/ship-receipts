@@ -9,11 +9,15 @@ Read it in that order.
 
 - local scoring via `ship-receipts score`
 - local streak state via `ship-receipts streak`
+- daily dashboard via `ship-receipts daily`
 - dry replay via `ship-receipts simulate`
 - ceremonial render manifests via `ship-receipts render`
 - runway export via `ship-receipts runway build`
 
 These are the parts a normal user can actually run today.
+
+Screenshots of the runnable surfaces are in the
+[`Game Mode Guide`](../game-mode.md#screenshots).
 
 ## What is partial
 

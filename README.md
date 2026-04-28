@@ -114,7 +114,8 @@ OpenTimestamps is the scoped exception:
 
 The game-flavored layer is optional. It includes local scoring, streaks, goals,
 simulation, and ceremonial render manifests. The game should reward better proof,
-not more busywork.
+not more busywork. See the [game mode screenshots](./docs/game-mode.md#screenshots)
+for the runnable surfaces.
 
 ## Repo layout
 

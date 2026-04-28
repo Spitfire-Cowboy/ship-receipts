@@ -3,12 +3,29 @@
 There is an optional game-flavored layer on top of the core receipt flow:
 - local scoring
 - streaks
+- daily dashboard
 - simulation
 - ceremonial render hooks
+- runway export
 
 This is real enough to experiment with, but it is not yet a full game product.
 
 For current status, read [docs/game-mode/README.md](./game-mode/README.md).
+
+## Screenshots
+
+These screenshots cover the game surfaces that are runnable today. The wider
+party, guild, monk, siege, and hardware concepts are design backlog; they do not
+have shipped UI screenshots yet.
+
+| Mode | Screenshot |
+| --- | --- |
+| Score | [![Score mode](./assets/game-mode-score.png)](./assets/game-mode-score.png) |
+| Streak | [![Streak mode](./assets/game-mode-streak.png)](./assets/game-mode-streak.png) |
+| Daily dashboard | [![Daily dashboard](./assets/game-mode-daily.png)](./assets/game-mode-daily.png) |
+| Simulation | [![Simulation mode](./assets/game-mode-simulate.png)](./assets/game-mode-simulate.png) |
+| Render manifest | [![Render manifest mode](./assets/game-mode-render.png)](./assets/game-mode-render.png) |
+| Runway export | [![Runway export mode](./assets/game-mode-runway-build.png)](./assets/game-mode-runway-build.png) |
 
 ## Replay historical receipts
 
