@@ -1,30 +1,43 @@
 # Ship Receipts
 
-Ship Receipts is a CLI and JSON schema for recording work you actually shipped.
+[![CI](https://github.com/Spitfire-Cowboy/ship-receipts/actions/workflows/ci.yml/badge.svg)](https://github.com/Spitfire-Cowboy/ship-receipts/actions/workflows/ci.yml)
+[![Runway Pages](https://github.com/Spitfire-Cowboy/ship-receipts/actions/workflows/runway-pages.yml/badge.svg)](https://github.com/Spitfire-Cowboy/ship-receipts/actions/workflows/runway-pages.yml)
+[![Node >=20](https://img.shields.io/badge/node-%3E%3D20-43853d)](./package.json)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](./LICENSE)
+[![Docs](https://img.shields.io/badge/docs-index-informational)](./docs/README.md)
+[![Issues](https://img.shields.io/badge/issues-GitHub-informational)](https://github.com/Spitfire-Cowboy/ship-receipts/issues)
 
-Each receipt is a small, machine-readable claim:
-- what was shipped
-- where it lives
-- who is claiming it
-- how someone else could check it
+[Getting started](./docs/getting-started.md) · [Runway](./docs/runway.md) · [Game mode](./docs/game-mode.md) · [Concepts](./docs/concepts.md) · [Docs index](./docs/README.md)
 
-## What it does
+CLI and JSON schema for recording work you actually shipped.
 
-`ship-receipts` runs locally. It creates receipts, validates them, scores them
-into local state, and can export a static "runway" page from receipts or recent
-git history.
+## Why it exists
 
-It is not a social network, a badge farm, or a global reputation service. It is
-the local evidence layer. The separate `proofofship` verifier is the global
-layer.
+Receipts over vibes: a receipt says what shipped, where it lives, who claims it,
+and how someone else can check it.
 
-## Install
+## Features
+
+- 🧾 **Local receipts** — create small, machine-readable claims for shipped work.
+- ✅ **Validation** — check schema shape and optional content hashes.
+- 📈 **Scoring** — track local state, streaks, goals, and daily progress.
+- 🛫 **Runway export** — build a static timeline from receipts or recent git history.
+- ⏱️ **OpenTimestamps** — anchor receipt digests with scoped timestamp proofs.
+- 🎮 **Optional game layer** — reward better proof, not more busywork.
+
+It is not a social network, badge farm, or global reputation service. This repo
+is the local evidence layer; the separate `proofofship` verifier is the global
+verification layer.
+
+## Quickstart
+
+Run the CLI:
 
 ```bash
 npx ship-receipts --help
 ```
 
-For local development in this repo:
+Develop locally:
 
 ```bash
 npm install
@@ -32,7 +45,7 @@ npm run build
 npm test
 ```
 
-## Quick start
+## Example workflow
 
 Create a receipt:
 
@@ -65,66 +78,24 @@ Build a static runway from recent git history:
 ship-receipts runway build --from-git --days 30 --output-dir .runway
 ```
 
-## Docs
-
-- [Getting started](./docs/getting-started.md)
-- [Runway guide](./docs/runway.md)
-- [Game mode guide](./docs/game-mode.md)
-- [Concepts](./docs/concepts.md)
-- [Release checklist](./docs/release-checklist.md)
-- [Docs index](./docs/README.md)
-
-Preview:
+## Preview
 
 <table><tr>
 <td><a href="docs/assets/runway-desktop-view.png"><img src="docs/assets/runway-desktop-view.png" alt="Ship Receipts runway desktop view" width="420"></a></td>
 <td><a href="docs/assets/runway-mobile-view.png"><img src="docs/assets/runway-mobile-view.png" alt="Ship Receipts runway mobile view" width="240"></a></td>
 </tr></table>
 
-## OpenTimestamps
+## More information
 
-Receipts can be anchored with OpenTimestamps. This proves a digest existed at a
-point in time. It does not prove the receipt claim is true.
-
-```bash
-ship-receipts anchor ots receipt.json
-ship-receipts verify ots receipt.json
-```
-
-`anchor ots` and `verify ots` require the `ots` CLI:
-
-```bash
-pip3 install opentimestamps-client
-```
-
-## Trust boundary
-
-`ship-receipts` records and packages claims locally.
-
-It does **not** independently verify those claims globally. That boundary belongs
-to the separate `proofofship` verifier, which re-checks receipts against the
-public record.
-
-OpenTimestamps is the scoped exception:
-- `anchor ots` and `verify ots` call the external `ots` CLI.
-- That verifies timestamp proof linkage for a digest.
-- It does not replace global receipt verification.
-
-## Game layer
-
-The game-flavored layer is optional. It includes local scoring, streaks, goals,
-simulation, and ceremonial render manifests. The game should reward better proof,
-not more busywork. See the [game mode screenshots](./docs/game-mode.md#screenshots)
-for the runnable surfaces.
-
-## Repo layout
-
-- CLI source: [`src-ts/`](src-ts/)
-- schemas: [`schema/`](schema/) and [`schemas/`](schemas/)
-- examples: [`examples/`](examples/)
-- TypeScript tests: [`tests-ts/`](tests-ts/)
-- Python reference tests: [`tests/`](tests/)
-- docs: [`docs/`](docs/)
+- [Getting started](./docs/getting-started.md)
+- [Runway guide](./docs/runway.md)
+- [Game mode guide](./docs/game-mode.md)
+- [Concepts](./docs/concepts.md)
+- [OpenTimestamps setup](./docs/getting-started.md#opentimestamps)
+- [Local/global trust boundary](./docs/concepts.md#proof-of-ship)
+- [Repo map](./docs/site-map.md)
+- [Release checklist](./docs/release-checklist.md)
+- [Docs index](./docs/README.md)
 
 ## License
 
