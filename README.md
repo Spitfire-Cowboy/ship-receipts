@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Spitfire-Cowboy/ship-receipts/actions/workflows/ci.yml/badge.svg)](https://github.com/Spitfire-Cowboy/ship-receipts/actions/workflows/ci.yml)
 [![Runway Pages](https://github.com/Spitfire-Cowboy/ship-receipts/actions/workflows/runway-pages.yml/badge.svg)](https://github.com/Spitfire-Cowboy/ship-receipts/actions/workflows/runway-pages.yml)
-[![Node >=20](https://img.shields.io/badge/node-%3E%3D20-43853d)](./package.json)
+[![Node ^20.19 or >=22.12](https://img.shields.io/badge/node-%5E20.19%20or%20%3E%3D22.12-43853d)](./package.json)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](./LICENSE)
 [![Docs](https://img.shields.io/badge/docs-index-informational)](./docs/README.md)
 [![Issues](https://img.shields.io/badge/issues-GitHub-informational)](https://github.com/Spitfire-Cowboy/ship-receipts/issues)
