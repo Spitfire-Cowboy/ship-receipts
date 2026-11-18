@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "subject": {
+    "name": "Example Builder"
+  },
+  "artifacts": [
+    {
+      "kind": "release",
+      "name": "Example Toolkit 1.2.0",
+      "url": "https://example.com/toolkit/releases/1.2.0",
+      "verify": [
+        {
+          "kind": "link",
+          "url": "https://example.com/toolkit/builds/42"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "created_at": "2026-03-20T12:00:00Z",
+    "generator": "example-ci/2.0",
+    "example_ci": {
+      "run_id": "42"
+    }
+  }
+}

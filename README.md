@@ -47,7 +47,7 @@ npm test
 
 ## Example workflow
 
-Create a receipt:
+Mint a receipt directly with the local CLI. No upstream producer is required:
 
 ```bash
 ship-receipts create \
@@ -64,6 +64,26 @@ Validate it:
 ```bash
 ship-receipts validate receipt.json
 ```
+
+### Direct and producer-derived receipts
+
+| Flow | Example | How the receipt is made |
+| --- | --- | --- |
+| Direct mint | [CLI receipt](./examples/ship-receipts.v1.example.json) | Record the subject and shipped artifact locally, as in the command above. |
+| Producer-derived | [Build report receipt](./examples/ship-receipts.v1.producer.example.json) | Map a build report's publisher to `subject.name`, its release name and URL to an `artifacts` entry, and its build log to `artifacts[].verify`. |
+
+Both examples use the same [v1 receipt schema](./schema/ship-receipts.v1.schema.json).
+Consumers can rely on the schema-defined fields: `version`, `subject.name`, and
+at least one artifact with `kind`, `name`, and `url` are required. Optional fields
+such as `artifacts[].immutable_ref` and `artifacts[].verify` carry evidence when
+available. `meta.generator` is a schema-defined, optional provenance hint, not
+a requirement to use a specific tool.
+
+The build report's `meta.example_ci.run_id` is producer-specific context. The
+schema permits it as an extra, but consumers should not require it or use it in
+place of the standard evidence fields. The build report uses fictional data.
+
+### Local scoring and runway
 
 Score it into local state:
 

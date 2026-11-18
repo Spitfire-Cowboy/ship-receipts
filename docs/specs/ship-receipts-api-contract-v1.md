@@ -13,6 +13,11 @@ V1 is a CLI tool. No server, no HTTP endpoints, no database. All operations are 
 
 The "API" is the CLI command interface. This doc specifies exact inputs, outputs, and exit codes.
 
+The [v1 receipt schema](../../schema/ship-receipts.v1.schema.json) is independent
+of the CLI and any upstream producer. A locally minted receipt and a receipt
+derived from another tool use the same contract. See the [paired examples and
+field guidance](../../README.md#direct-and-producer-derived-receipts).
+
 ---
 
 ## Commands
